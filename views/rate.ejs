@@ -1,0 +1,24 @@
+<html>
+	<head>
+		<title>Rate</title>
+	</head>
+	<body>
+		<h1>Rate the Restaurant</h1>
+
+		<form action='/rate-logic' method='POST' encType='multipart/form-data'>
+			<!-- some fields will not show in the form, they generate by program -->
+			<!-- Restaurant id:  -->
+			<input type='hidden' name='_id' value="<%= _id%>">
+			<br>
+
+			<!-- grades.user:  -->
+			<input type='hidden' name='userid' value="<%= userid%>">
+			<br>
+			<!-- grades.score:  -->
+			Rating: <input type="number" name="score" min="1" max="10" required>
+
+			<input type='submit' value='Rate the Restaurant'> 
+		</form>
+
+	</body>
+</html>

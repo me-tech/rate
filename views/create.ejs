@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<title>Create</title>
+	</head>
+	<body>
+		<h1>Create New Restaurant</h1>
+
+		<form action='/create-logic' method='POST' encType='multipart/form-data'>
+			<!-- some fields will not show in the form, they generate by program -->
+			<!-- Restaurant id: <input type='text' name='restaurant_id'><br> -->
+			Name: <input type='text' name='name' required><br>
+			Borough: <input type='text' name='borough'> <br>
+			Cuisine: <input type='text' name='cuisine'><br>
+			
+			<!-- photo mimitype: <input type='text' name=''><br> -->
+			Street: <input type='text' name='street'><br>
+			Building: <input type='text' name='building'><br>
+			Zipcode: <input type='text' name='zipcode'><br>
+			
+			GPS Coordinates (lon.): <input type='text' name='lon'><br>
+			GPS Coordinates (lat.): <input type='text' name='lat'><br>
+			Photo: <input type='file' name='photo' accept="image/*"><br>
+
+			<!-- Not rate in here -->
+			<!-- grades.user: <input type='text' name=''><br> -->
+			<!-- grades.score: <input type='text' name=''><br> -->
+
+		<!-- 	owner: <input type='text' name=''><br> -->
+
+			<input type='submit' value='Create Restaurant!'> 
+		</form>
+
+	</body>
+</html>
+
+<!-- 
+Grades: [	
+	{
+		userid:
+		score:
+	},
+	{
+		userid:
+		score:
+	}
+]
+
+Restaurant documents may contain the following attributes:
+i. restaurant_id 
+ii. name
+iii. borough 
+iv. cuisine
+v. photo
+vi. photo mimetype
+vii. address
+	1. street
+	2. building 
+	3. zipcode 
+	4. coord
+viii. grades 
+	1. user
+	2. score 
+ix. owner
+
+-----------
+
+Field enter by user in demo:
+
+Name
+Cuisine
+Street
+Building
+Zipcode
+GPS Coordinates (lon.)
+GPS Coordinates (lat.)
+Photo -->

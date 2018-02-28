@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<title>Restaurant</title>
+	</head>
+	<body>
+		<h1>Restaurants</h1>
+		User: <%= userid %> <br>
+
+		Showing <%= r.length %> documents
+		(criteria:<%= criteria %>) <br><br>
+		<a href='/new'><button>Create New Restaurant</button></a>
+
+		<% if (r.length == 0) { %>
+			<p> Restaurant not found! </p>
+		<% } else { %>
+
+			<table>
+	        	<thead>
+	          		<tr>
+	            		<th>Name</th>
+	          		</tr>
+	        	</thead>
+	        	<tbody>
+	          		<!-- for loop to gen tr -->
+	          		
+					<% for (var i in r) { %>
+	  					<tr>
+	  						<td>
+	  							<a href='/display?_id=<%= r[i]._id %>'><%= r[i].name %></a>
+	  						</td>
+	  					<tr>
+					<% } %>
+
+	        	</tbody>
+	      	</table>
+
+      	<% } %>
+
+      	<a href='/logout'><button>  Logout </button></a> 
+
+	</body>
+</html>
+
+<!-- c = [
+	{name:"123",_id:"123"},
+	{name:"123",_id:"123"},
+	{name:"123",_id:"123"}
+]
+
+<% for (var i in r) { %>
+  					<tr><td><a href='/display?_id=123'>123</a><td><tr>
+<% } %>
+ -->
