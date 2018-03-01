@@ -47,7 +47,8 @@ app.get('/api/browse/prof', function(req, res) {
                 //var majorName = getMajorName(rows[i].Mshort);
                 objs.push({Professor: rows[i].Uname, School: uniName, Major: rows[i].Mshort});
             }
-            res.end(JSON.stringify(objs));
+            var result = {result: objs};
+            res.end(JSON.stringify(result));
         }
     });
 
@@ -71,7 +72,8 @@ app.get('/api/browse/course', function(req, res) {
             for (var i = 0;i < rows.length; i++) {
                 objs.push({ID: rows[i].ID, Cname: rows[i].Cname, Code: rows[i].Code, Major: rows[i].Major});
             }
-            res.end(JSON.stringify(objs));
+            var result = {result: objs};
+            res.end(JSON.stringify(result));
         }
     });
 
@@ -95,7 +97,8 @@ app.get('/api/browse/university', function(req, res) {
             for (var i = 0;i < rows.length; i++) {
                 objs.push({ID: rows[i].ID, SchoolName: rows[i].SchoolName, SchoolShort: rows[i].SchoolShort});
             }
-            res.end(JSON.stringify(objs));
+            var result = {result: objs};
+            res.end(JSON.stringify(result));
         }
     });
 
