@@ -9,8 +9,8 @@ var bodyParser = require('body-parser');
 var app = express();
 app.use(bodyParser.json());
 
-//var db = require('./conn.js');
-var db = require('./connLocal.js');
+var db = require('./conn.js');
+//var db = require('./connLocal.js');
 
 //Alternative way to use cookies:
 var session = require('cookie-session');
