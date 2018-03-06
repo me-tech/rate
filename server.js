@@ -1,3 +1,5 @@
+'use strict'
+
 var express = require('express');
 var formidable = require('formidable');
 var http = require('http');
@@ -11,19 +13,10 @@ var mysql = require('mysql');
 var app = express();
 app.use(bodyParser.json());
 
-var db = require('./conn.js');
-//var db = require('./connLocal.js');
-
-//Alternative way to use cookies:
-var session = require('cookie-session');
-app.use(session({
-    name: 'session',
-    keys: ['key1', 'key2']
-}));
+//var db = require('./conn.js');
+var db = require('./connLocal.js');
 
 app.use(fileUpload());
-
-app.set('view engine', 'ejs');
 
 app.get('/api/browse/prof', function(req, res) {
     console.log(req.path);
@@ -153,14 +146,33 @@ app.get('/api/restaurant/read/:key/:value', function(req, res) {
 });
 
 app.get('/api/search/user/:key/:value', function(req,res){
+    console.log(req.path);
+    res.type('json');
+    res.status(200);
+
     if(req.params.key == "Student"){
 
     }
 
     if(req.params.key == "Professor"){
-        res.end(getProfDepartment(req.params.value));
+        console.log(req.params.value);
+        console.log(unEscape(req.params.value));
+        run(function* (){
+            var result = yield getProfDepartment(unEscape(req.params.value));
+            yield res.end(result);
+        });
     }
 });
+
+var gen;
+function run(generator) {
+    gen = generator();
+    gen.next();
+}
+
+function unEscape(str){
+    return str.replace(/\+/g," ");
+}
 
 function getProfDepartment(Uname){
     var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
@@ -168,8 +180,8 @@ function getProfDepartment(Uname){
         if (err) {
             console.log(err);
         }else{
-            console.log(rows[0].Uname);
-            return JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort, Department: rows[0].Department});
+            console.log(JSON.stringify(rows[0]));
+            gen.next(JSON.stringify(rows[0]));
         }
     });
 }
