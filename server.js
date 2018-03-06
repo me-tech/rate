@@ -14,7 +14,7 @@ var app = express();
 app.use(bodyParser.json());
 
 var db = require('./conn.js');
-// var db = require('./connLocal.js');
+//var db = require('./connLocal.js');
 
 app.use(fileUpload());
 
@@ -136,31 +136,38 @@ app.post('/api/login', function(req, res) {
 
 });
 
-app.get('/api/restaurant/read/:key/:value', function(req, res) {
-
-    var criteria = {};
-    criteria[req.params.key] = req.params.value;
-    console.log(criteria);
-    
-    //database operation
-});
-
 app.get('/api/search/user/:key/:value', function(req,res){
     console.log(req.path);
     res.type('json');
-    res.status(200);
 
     if(req.params.key == "Student"){
-
+        res.status(204);
+        res.end(errorCode(204,"No Content for Student"));
     }
 
     if(req.params.key == "Professor"){
         console.log(req.params.value);
         console.log(unEscape(req.params.value));
-        run(function* (){
-            var result = yield getProfDepartment(unEscape(req.params.value));
-            yield res.end(result);
+
+        var Uname = unEscape(req.params.value);
+        var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
+        db.query(sql, Uname, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(404).end(errorCode(404, "Prof. Not Found"));
+            }else{
+                console.log(JSON.stringify(rows[0]));
+                res.status(200).end(JSON.stringify(rows[0]));
+            }
         });
+        // run(function* (){
+        //     var result = yield getProfDepartment(unEscape(req.params.value));
+        //     yield res.send(result);
+        //     if(result == null){
+        //         res.status(404).send(errorCode(404, "Prof. Not Found"));
+        //     }
+        // });
     }
 });
 
@@ -179,6 +186,8 @@ function getProfDepartment(Uname){
     db.query(sql, Uname, function(err, rows) {
         if (err) {
             console.log(err);
+        }else if (!rows.length){
+            gen.next(null);
         }else{
             console.log(JSON.stringify(rows[0]));
             gen.next(JSON.stringify(rows[0]));
