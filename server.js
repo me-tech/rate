@@ -13,8 +13,8 @@ var mysql = require('mysql');
 var app = express();
 app.use(bodyParser.json());
 
-//var db = require('./conn.js');
-var db = require('./connLocal.js');
+var db = require('./conn.js');
+// var db = require('./connLocal.js');
 
 app.use(fileUpload());
 
