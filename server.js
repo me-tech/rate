@@ -158,7 +158,7 @@ app.get('/api/search/user/:key/:value', function(req,res){
     }
 
     if(req.params.key == "Professor"){
-        res.end(getProfDepartment());
+        res.end(getProfDepartment(req.params.value));
     }
 });
 
