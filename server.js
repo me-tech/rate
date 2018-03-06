@@ -110,18 +110,6 @@ app.post('/api/login', function(req, res) {
     res.type('json');
     res.status(200);
 
-    //Handle photo input
-    // var mimetype = "";
-    // if (req.files.photo) {
-    //     photoBuffer = req.files.photo.data;
-    //     mimetype = req.files.photo.mimetype;
-    // }
-
-    // res.end(mimetype);
-
-    //Name & owner are mandatory
-    //Nothing in name, req.body.name=false , !false -> true, enter if block
-
     var email = req.body.email;
     var password = req.body.password;
 
@@ -163,6 +151,28 @@ app.get('/api/restaurant/read/:key/:value', function(req, res) {
     
     //database operation
 });
+
+app.get('/api/search/user/:key/:value', function(req,res){
+    if(req.params.key == "Student"){
+
+    }
+
+    if(req.params.key == "Professor"){
+        res.end(getProfDepartment());
+    }
+});
+
+function getProfDepartment(Uname){
+    var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
+    db.query(sql, Uname, function(err, rows) {
+        if (err) {
+            console.log(err);
+        }else{
+            console.log(rows[0].Uname);
+            return JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort, Department: rows[0].Department});
+        }
+    });
+}
 
 function getProfInfo(Email){
     //SQL where Email = Email
