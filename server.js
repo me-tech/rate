@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var express = require('express');
 var formidable = require('formidable');
@@ -69,31 +69,6 @@ app.get('/api/browse/course', function(req, res) {
 
 });
 
-app.get('/api/browse/university', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
-
-    res.status(200);
-    res.type('json');
-
-
-    var sql = 'SELECT ID, SchoolName, SchoolShort FROM University';
-    db.query(sql, function(err, rows) {
-        if (err) {
-            console.log(err);
-            dberror();
-        }else{
-            var objs = [];
-            for (var i = 0;i < rows.length; i++) {
-                objs.push({ID: rows[i].ID, SchoolName: rows[i].SchoolName, SchoolShort: rows[i].SchoolShort});
-            }
-            var result = {result: objs};
-            res.end(JSON.stringify(result));
-        }
-    });
-
-});
-
 app.post('/api/login', function(req, res) {
     console.log('/api/login');
     console.log(req.body);
@@ -109,7 +84,7 @@ app.post('/api/login', function(req, res) {
         var input_array = [];
         input_array.push(email);
         input_array.push(password);
-        var sql = mysql.format('SELECT Uname, Type, SchoolShort, Mshort FROM User WHERE Email = ? AND Password = ?', input_array);
+        var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort';
         db.query(sql, function(err, rows) {
             if (err) {
                 console.log(err);
@@ -120,7 +95,7 @@ app.post('/api/login', function(req, res) {
                         res.end(errorCode(403, "Wrong email or password"));
                     }else{
                         console.log(rows[0].Uname);
-                        res.end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
+                        res.end(JSON.stringify({Uname: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, Mname: rows[i].Mname, SchoolShort: rows[i].SchoolShort, Mshort: rows[i].Mshort}));
                     }
                 }catch(e){
                     if(e instanceof TypeError){
@@ -131,6 +106,57 @@ app.post('/api/login', function(req, res) {
         });
     }
 
+});
+
+app.post('/api/forget', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+
+    if(!email){
+        res.end(JSON.stringify({error: "email missing"}));
+    }else{
+        var input_array = [];
+        input_array.push(email);
+        var sql = mysql.format('SELECT Uname FROM User WHERE Email = ?', input_array);
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500,"Database connection error"));
+            }else{
+                try{
+                    if(rows[0].Uname == null || !rows[0].Uname){
+                        res.status(403).end(errorCode(403, "User does not exist."));
+                    }else{
+                        console.log(rows[0].Uname);
+                        
+                        db.query(sql, function(err, rows) {
+                            if(err){
+                                console.log(err);
+                                res.status(500).end(errorCode(500,"Database connection error"));
+                            }else{
+                                try{
+
+                                }catch(e){
+                                    if(e instanceof TypeError){
+                                        res.status()
+                                    }
+                                }
+                            }
+                        }
+
+                        res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
+                    }
+                }catch(e){
+                    if(e instanceof TypeError){
+                        res.status(403).end(errorCode(403, "User does not exist."));
+                    }
+                }
+            }
+        });
+    }
 });
 
 app.get('/api/search/user/:key/:value', function(req,res){
