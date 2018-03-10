@@ -26,7 +26,7 @@ app.get('/api/browse/prof', function(req, res) {
     res.type('json');
 
 
-    var sql = 'SELECT Uname, SchoolShort, Mshort FROM User';
+    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor"';
     db.query(sql, function(err, rows) {
         if (err) {
             console.log(err);
@@ -34,11 +34,8 @@ app.get('/api/browse/prof', function(req, res) {
         }else{
             var objs = [];
             for (var i = 0;i < rows.length; i++) {
-                var uniName = getUniName(rows[i].SchoolShort);
-                console.log(uniName);
                 console.log(rows[i].SchoolShort);
-                //var majorName = getMajorName(rows[i].Mshort);
-                objs.push({Professor: rows[i].Uname, School: uniName, Major: rows[i].Mshort});
+                objs.push({Professor: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, Mname: rows[i].Mname, SchoolShort: rows[i].SchoolShort, Mshort: rows[i].Mshort});
             }
             var result = {result: objs};
             res.end(JSON.stringify(result));
