@@ -141,11 +141,11 @@ app.post('/api/forget', function(req, res) {
 
                                 }catch(e){
                                     if(e instanceof TypeError){
-                                        res.status()
+                                        res.status();
                                     }
                                 }
                             }
-                        }
+                        });
 
                         res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
                     }
