@@ -25,7 +25,7 @@ app.get('/api/browse/prof', function(req, res) {
     res.status(200);
     res.type('json');
 
-    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname, AVG(Rating.RateScore) AS RateScore FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email';
+    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
     db.query(sql, function(err, rows) {
         if (err) {
             console.log(err);
@@ -68,8 +68,50 @@ app.get('/api/browse/course', function(req, res) {
 
 });
 
+app.post('/api/register', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var uname = req.body.uname;
+    var email = req.body.email;
+    var password = req.body.password;
+    var major = req.body.programmeName;
+
+    if(!email || !password){
+        res.end(JSON.stringify({error: "email or password missing"}));
+    }else{
+        var input_array = [];
+        input_array.push(email);
+        input_array.push(password);
+        var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Email = ? AND User.Password = ?';
+        sql = mysql.format(sql, input_array);
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.end(errorCode(500,"Database connection error"));
+            }else{
+                try{
+                    if(rows[0].Uname == null || !rows[0].Uname){
+                        res.end(errorCode(403, "Wrong email or password"));
+                    }else{
+                        console.log(rows[0].Uname);
+                        sendEmail('victor.siu.528@gmail.com', 'testing from login', '<p>Just a Test</p>');
+                        res.end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
+                    }
+                }catch(e){
+                    if(e instanceof TypeError){
+                        res.end(errorCode(403, "Wrong email or password"));
+                    }
+                }
+            }
+        });
+    }
+
+});
+
 app.post('/api/login', function(req, res) {
-    console.log('/api/login');
+    console.log(req.path);
     console.log(req.body);
     res.type('json');
     res.status(200);
@@ -95,7 +137,6 @@ app.post('/api/login', function(req, res) {
                         res.end(errorCode(403, "Wrong email or password"));
                     }else{
                         console.log(rows[0].Uname);
-                        sendEmail('victor.siu.528@gmail.com', 'testing from login', '<p>Just a Test</p>');
                         res.end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
                     }
                 }catch(e){
