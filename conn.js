@@ -27,3 +27,16 @@ pool.on('error', function(err) {
 });
 
 module.exports = pool;
+
+const notifme = new NotifmeSdk({
+  channels: {
+    email: {
+      providers: [{
+        type: 'sparkpost',
+        apiKey: process.env.SPARKPOST_API_KEY,
+      }]
+    }
+  }
+});
+
+module.exports = notifme;

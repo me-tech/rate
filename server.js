@@ -84,8 +84,8 @@ app.post('/api/login', function(req, res) {
         var input_array = [];
         input_array.push(email);
         input_array.push(password);
-        var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort';
-        db.query(sql, function(err, rows) {
+        var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Email = ? AND User.Password = ?';
+        db.query(sql, input_array, function(err, rows) {
             if (err) {
                 console.log(err);
                 res.end(errorCode(500,"Database connection error"));
@@ -251,6 +251,17 @@ function errorCode(status, message){
 
 function dberror(){
     return res.end(errorCode(500, "Database Error"));
+}
+
+function sendEmail(argument) {
+    notifmeSdk.send({
+      email: {
+        from: 'test@your-sending-domain.com',
+        to: 'someone@somedomain.com',
+        subject: 'Hello from the SparkPost notif.me provider',
+        html: '<p>Hello world</p>'
+      }
+    }).then(console.log);
 }
 
 app.listen(process.env.PORT || 8099);
