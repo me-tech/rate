@@ -11,6 +11,7 @@ var pool  = mysql.createPool({
     connectTimeout  : 60 * 60 * 1000,
     acquireTimeout   : 60 * 60 * 1000,
     timeout         : 60 * 60 * 1000,
+    multipleStatements: true,
 });
 
 pool.getConnection(function(err, connection) {
