@@ -1,14 +1,5 @@
-const NotifmeSdk = require('notifme-sdk').default;
+var nodemailer = require('nodemailer');
+var sparkPostTransport = require('nodemailer-sparkpost-transport');
+var transporter = nodemailer.createTransport(sparkPostTransport());
 
-const notifme = new NotifmeSdk({
-  channels: {
-    email: {
-      providers: [{
-        type: 'sparkpost',
-        apiKey: process.env.SPARKPOST_API_KEY,
-      }]
-    }
-  }
-});
-
-module.exports = notifme;
+module.exports = transporter;

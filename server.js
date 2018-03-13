@@ -13,8 +13,8 @@ var mysql = require('mysql');
 var app = express();
 app.use(bodyParser.json());
 
-var db = require('./conn.js'); var notifme = require('./sendEmail.js');
-//var db = require('./connLocal.js'); var notifme = require('./sendEmailLocal.js');
+var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -296,14 +296,18 @@ function dberror(){
 }
 
 function sendEmail(to, subject, html) {
-    notifme.send({
-      email: {
-        from: 'rate@metech.fighter.hk',
-        to: to,
-        subject: subject,
-        html: html,
+    transporter.sendMail({
+      from: 'rate@metech.fighter.hk',
+      to: to,
+      subject: subject,
+      html: html,
+    }, function(err, info) {
+      if (err) {
+        console.log('Error: ' + err);
+      } else {
+        console.log('Success: ' + info);
       }
-    }).then(console.log);
+    });
 }
 
 app.listen(process.env.PORT || 8099);
