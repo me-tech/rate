@@ -25,8 +25,7 @@ app.get('/api/browse/prof', function(req, res) {
     res.status(200);
     res.type('json');
 
-
-    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor"';
+    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname, AVG(Rating.RateScore) AS RateScore FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email';
     db.query(sql, function(err, rows) {
         if (err) {
             console.log(err);
@@ -34,8 +33,8 @@ app.get('/api/browse/prof', function(req, res) {
         }else{
             var objs = [];
             for (var i = 0;i < rows.length; i++) {
-                console.log(rows[i].SchoolShort);
-                objs.push({Professor: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, Mname: rows[i].Mname, SchoolShort: rows[i].SchoolShort, Mshort: rows[i].Mshort});
+                console.log(rows[i]);
+                objs.push({Professor: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, Mname: rows[i].Mname, SchoolShort: rows[i].SchoolShort, Mshort: rows[i].Mshort, RateScore: rows[i].RateScore});
             }
             var result = {result: objs};
             res.end(JSON.stringify(result));
@@ -96,6 +95,7 @@ app.post('/api/login', function(req, res) {
                         res.end(errorCode(403, "Wrong email or password"));
                     }else{
                         console.log(rows[0].Uname);
+                        sendEmail('victor.siu.528@gmail.com', 'testing from login', '<p>Just a Test</p>');
                         res.end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
                     }
                 }catch(e){
@@ -254,13 +254,13 @@ function dberror(){
     return res.end(errorCode(500, "Database Error"));
 }
 
-function sendEmail(argument) {
+function sendEmail(to, subject, html) {
     notifme.send({
       email: {
-        from: 'test@your-sending-domain.com',
-        to: 'someone@somedomain.com',
-        subject: 'Hello from the SparkPost notif.me provider',
-        html: '<p>Hello world</p>'
+        from: 'rate@metech.fighter.hk',
+        to: to,
+        subject: subject,
+        html: html,
       }
     }).then(console.log);
 }

@@ -5,7 +5,7 @@ const notifme = new NotifmeSdk({
     email: {
       providers: [{
         type: 'sparkpost',
-        apiKey: process.env.SPARKPOST_API_KEY,
+        apiKey: '80952a63a56a518089c9b5aa0342a240ac221c6d',
       }]
     }
   }

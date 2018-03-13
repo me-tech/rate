@@ -62,3 +62,4 @@ typings/
 
 # Local Testing use
 connLocal.js
+sendEmailLocal.js
