@@ -25,7 +25,7 @@ app.get('/api/browse/prof', function(req, res) {
     res.status(200);
     res.type('json');
 
-    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
+    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
     db.query(sql, function(err, rows) {
         if (err) {
             console.log(err);
@@ -34,7 +34,7 @@ app.get('/api/browse/prof', function(req, res) {
             var objs = [];
             for (var i = 0;i < rows.length; i++) {
                 console.log(rows[i]);
-                objs.push({Professor: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, Mname: rows[i].Mname, SchoolShort: rows[i].SchoolShort, Mshort: rows[i].Mshort, RateScore: rows[i].RateScore});
+                objs.push({Professor: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, SchoolShort: rows[i].SchoolShort, Department: rows[i].Department, RateScore: rows[i].RateScore});
             }
             var result = {result: objs};
             res.end(JSON.stringify(result));
@@ -73,18 +73,19 @@ app.post('/api/register', function(req, res) {
     console.log(req.body);
     res.type('json');
 
+    var type = req.body.type;
     var uname = req.body.uname;
     var email = req.body.email;
     var password = req.body.password;
     var major = req.body.programmeName;
+    var school = 'OUHK';
 
-    if(!email || !password){
-        res.end(JSON.stringify({error: "email or password missing"}));
+    if(!email || !password || !uname || !major || !type){
+        res.end(JSON.stringify({error: "Please fill in all fields."}));
     }else{
         var input_array = [];
-        input_array.push(email);
-        input_array.push(password);
-        var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Email = ? AND User.Password = ?';
+        input_array.push(uname,email,type,password, school, major);
+        var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Mshort) VALUES(?, ?, ?, ?, ?)';
         sql = mysql.format(sql, input_array);
         db.query(sql, function(err, rows) {
             if (err) {
@@ -96,7 +97,6 @@ app.post('/api/register', function(req, res) {
                         res.end(errorCode(403, "Wrong email or password"));
                     }else{
                         console.log(rows[0].Uname);
-                        sendEmail('victor.siu.528@gmail.com', 'testing from login', '<p>Just a Test</p>');
                         res.end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
                     }
                 }catch(e){
