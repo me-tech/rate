@@ -13,8 +13,8 @@ var mysql = require('mysql');
 var app = express();
 app.use(bodyParser.json());
 
-var db = require('./conn.js');
-//var db = require('./connLocal.js');
+var db = require('./conn.js'); var notifme = require('./sendEmail.js');
+//var db = require('./connLocal.js'); var notifme = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -85,7 +85,8 @@ app.post('/api/login', function(req, res) {
         input_array.push(email);
         input_array.push(password);
         var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Email = ? AND User.Password = ?';
-        db.query(sql, input_array, function(err, rows) {
+        sql = mysql.format(sql, input_array);
+        db.query(sql, function(err, rows) {
             if (err) {
                 console.log(err);
                 res.end(errorCode(500,"Database connection error"));
