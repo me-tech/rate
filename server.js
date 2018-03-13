@@ -16,8 +16,8 @@ app.use(bodyParser.json());
 var hash = require("password-hash");
 var validator = require('validator');
 
-var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+//var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -75,7 +75,7 @@ app.post('/api/register', function(req, res) {
 
     var type = req.body.type;
     console.log(type);
-    var uname = mysql.escape(req.body.uname);
+    var uname = req.body.uname;
     var email = req.body.email;
     var school = 'OUHK';
     var password = req.body.password;
@@ -91,7 +91,7 @@ app.post('/api/register', function(req, res) {
             res.status(400).end(JSON.stringify({error: "Please provide a proper email address."}));
         }else if(type==='Student' ||type==='Professor'){
             var input_array = [];
-            password = hash.generate(password);
+            //password = hash.generate(password);
             console.log('here');
 
             try{
@@ -135,21 +135,22 @@ app.post('/api/login', function(req, res) {
         res.status(400).end(JSON.stringify({error: "email or password missing"}));
     }else{
         var input_array = [];
-        input_array.push(email);
-        if(hash.isHashed(password)){
-        	input_array.push(hash.generate(password));
-        }else{
-        	input_array.push(password);
-        }
-        var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Email = ? AND User.Password = ?';
+        input_array.push(email,password);
+        console.log(input_array);
+        //input_array.push(password);
+        
+        var sql = 'SELECT User.Uname, User.Email, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
         sql = mysql.format(sql, input_array);
+        console.log(sql);
         db.query(sql, function(err, rows) {
             if (err) {
                 console.log(err);
                 res.status(500).end(errorCode(500,"Database connection error"));
             }else{
+            	console.log(rows[0]);
                 try{
                     if(rows[0].Uname == null || !rows[0].Uname){
+                    	console.log('1');
                         res.status(403).end(errorCode(403, "Wrong email or password"));
                     }else{
                         console.log(rows[0].Uname);
@@ -157,6 +158,7 @@ app.post('/api/login', function(req, res) {
                     }
                 }catch(e){
                     if(e instanceof TypeError){
+                    	console.log(e);
                         res.status(403).end(errorCode(403, "Wrong email or password"));
                     }
                 }
@@ -174,7 +176,7 @@ app.post('/api/forget', function(req, res) {
     var email = req.body.email;
 
     if(!email){
-        res.status(400).end(errorCode(400,"Email is missing"));
+        res.status(400).end(errorCode(400,"Please fill in the email address field."));
     }else{
         var input_array = [];
         input_array.push(email);
@@ -190,6 +192,7 @@ app.post('/api/forget', function(req, res) {
                     }else{
                         console.log(rows[0].Uname);
                         
+                        var sql = mysql.format('UPDATE User set Password = "ZZZ" WHERE Email= ?', input_array);
                         db.query(sql, function(err, rows) {
                             if(err){
                                 console.log(err);
@@ -322,7 +325,7 @@ function sendEmail(to, subject, html) {
 }
 
 function domainCheck(email) {
-    var whiteList = ['ouhk.edu.hk'];
+    var whiteList = ['ouhk.edu.hk', 'test.example'];
 
     var splitArray = email.split('@');
 
