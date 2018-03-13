@@ -101,8 +101,8 @@ app.post('/api/register', function(req, res) {
                 }
 
                 if(type=='Professor'){
-                    input_array.push(uname,email,type,password,school,department);
-                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department) VALUES(?, ?, ?, ?, ?, ?)';
+                    input_array.push(uname,email,type,password,school,department,email);
+                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department) VALUES(?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
                 }
             }finally{
                 console.log(sql);
@@ -136,7 +136,11 @@ app.post('/api/login', function(req, res) {
     }else{
         var input_array = [];
         input_array.push(email);
-        input_array.push(password);
+        if(hash.isHashed(password)){
+        	input_array.push(hash.generate(password));
+        }else{
+        	input_array.push(password);
+        }
         var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User, University, Major WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Email = ? AND User.Password = ?';
         sql = mysql.format(sql, input_array);
         db.query(sql, function(err, rows) {
