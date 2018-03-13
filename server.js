@@ -254,7 +254,7 @@ function dberror(){
 }
 
 function sendEmail(argument) {
-    notifmeSdk.send({
+    notifme.send({
       email: {
         from: 'test@your-sending-domain.com',
         to: 'someone@somedomain.com',

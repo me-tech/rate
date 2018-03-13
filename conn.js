@@ -28,6 +28,8 @@ pool.on('error', function(err) {
 
 module.exports = pool;
 
+const NotifmeSdk = require('notifme-sdk').default;
+
 const notifme = new NotifmeSdk({
   channels: {
     email: {
