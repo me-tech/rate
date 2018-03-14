@@ -35,7 +35,7 @@ app.get('/api/browse/:key', function(req, res) {
                 var sql = 'SELECT * FROM Major WHERE NOT Mshort = "PROF" ';
                 break;
             case 'prof':
-                var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
+                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
                 break;
             default:
                 res.status(403).end(errorCode(403, "Table forbidden."));
