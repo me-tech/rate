@@ -96,7 +96,7 @@ app.post('/api/register', function(req, res) {
 
                 if(type=='Professor'){
                     var major = 'PROF';
-                    input_array.push(uname,email,type,password,school,department,email,major);
+                    input_array.push(uname,email,type,password,school,department,major);
                     var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
                 }
             }finally{
@@ -214,19 +214,19 @@ app.post('/api/forget', function(req, res) {
     }
 });
 
-app.get('/api/search/user/:key/:value', function(req,res){
+app.get('/api/search/prof/:email/:field', function(req,res){
     console.log(req.path);
     res.type('json');
 
-    if(req.params.key == "Student"){
-        res.status(204).end(errorCode(204,"No Content for Student"));
+    if(!req.params.email){
+        res.status(400).end('No Professor email unspecified.');
     }
 
-    if(req.params.key == "Professor"){
-        console.log(req.params.value);
-        console.log(unEscape(req.params.value));
+    if(req.params.email && !req.params.field){
+        console.log(req.params.email);
+        console.log(req.params.field);
 
-        var Uname = unEscape(req.params.value);
+        var Uname = req.params.email;
         var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
         db.query(sql, Uname, function(err, rows) {
             if (err) {
@@ -238,6 +238,12 @@ app.get('/api/search/user/:key/:value', function(req,res){
                 res.status(200).end(JSON.stringify(rows[0]));
             }
         });
+    }
+
+    if(req.params.email && req.params.field){
+
+    }
+
         // run(function* (){
         //     var result = yield getProfDepartment(unEscape(req.params.value));
         //     yield res.send(result);
@@ -245,7 +251,7 @@ app.get('/api/search/user/:key/:value', function(req,res){
         //         res.status(404).send(errorCode(404, "Prof. Not Found"));
         //     }
         // });
-    }
+    
 });
 
 function unEscape(str){
