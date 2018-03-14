@@ -95,8 +95,9 @@ app.post('/api/register', function(req, res) {
                 }
 
                 if(type=='Professor'){
-                    input_array.push(uname,email,type,password,school,department,email);
-                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department) VALUES(?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
+                    var major = 'PROF';
+                    input_array.push(uname,email,type,password,school,department,email,major);
+                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
                 }
             }finally{
                 console.log(sql);
