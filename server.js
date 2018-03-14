@@ -21,36 +21,30 @@ var db = require('./conn.js'); var transporter = require('./sendEmail.js');
 
 app.use(fileUpload());
 
-app.get('/api/browse/prof', function(req, res) {
+app.get('/api/browse/:key', function(req, res) {
     console.log(req.path);
     console.log(req.body);
     res.type('json');
 
-    var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
-    db.query(sql, function(err, rows) {
-        if (err) {
-            console.log(err);
-            res.status(500).end(errorCode(500, "Database Error"));
-        }else{
-            var objs = [];
-            for (var i = 0;i < rows.length; i++) {
-                console.log(rows[i]);
-                objs.push({Professor: rows[i].Uname, Type: rows[i].Type, SchoolName: rows[i].SchoolName, SchoolShort: rows[i].SchoolShort, Department: rows[i].Department, RateScore: rows[i].RateScore});
-            }
-            var result = {result: objs};
-            res.status(200).end(JSON.stringify(result));
+    if(req.params.key){
+        switch(req.params.key){
+            case 'course':
+                var sql = 'SELECT * FROM Course';
+                break;
+            case 'major':
+                var sql = 'SELECT * FROM Major WHERE NOT Mshort = "PROF" ';
+                break;
+            case 'prof':
+                var sql = 'SELECT User.Uname, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
+                break;
+            default:
+                res.status(403).end(errorCode(403, "Table forbidden."));
+                break;
         }
-    });
+    }else{
+        res.status(400).end(errorCode(400, "Table not specified."));
+    }
 
-
-});
-
-app.get('/api/browse/course', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
-    res.type('json');
-
-    var sql = 'SELECT ID, Cname, Code, Major FROM Course';
     db.query(sql, function(err, rows) {
         if (err) {
             console.log(err);
@@ -58,7 +52,7 @@ app.get('/api/browse/course', function(req, res) {
         }else{
             var objs = [];
             for (var i = 0;i < rows.length; i++) {
-                objs.push({ID: rows[i].ID, Cname: rows[i].Cname, Code: rows[i].Code, Major: rows[i].Major});
+                objs.push(rows[i]);
             }
             var result = {result: objs};
             
@@ -253,55 +247,8 @@ app.get('/api/search/user/:key/:value', function(req,res){
     }
 });
 
-var gen;
-function run(generator) {
-    gen = generator();
-    gen.next();
-}
-
 function unEscape(str){
     return str.replace(/\+/g," ");
-}
-
-function getProfDepartment(Uname){
-    var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
-    db.query(sql, Uname, function(err, rows) {
-        if (err) {
-            console.log(err);
-        }else if (!rows.length){
-            gen.next(null);
-        }else{
-            console.log(JSON.stringify(rows[0]));
-            gen.next(JSON.stringify(rows[0]));
-        }
-    });
-}
-
-function getProfInfo(Email){
-    //SQL where Email = Email
-
-    //return Uname, Uni Full Name, Major Full Name
-}
-
-function getUniName(SchoolShort) {
-
-    var sql = 'SELECT SchoolName FROM University WHERE SchoolShort = ?';
-    db.query(sql, SchoolShort, function(err, rows) {
-        if (err) {
-            console.log(err);
-        }else{
-            console.log(rows[0].SchoolName);
-            return rows[0].SchoolName;
-        }
-    });
-
-};
-
-function getMajorName(Mshort) {
-    //SQL where Mshort = Mshort
-
-    //return Major FullName
-
 }
 
 function errorCode(status, message){
@@ -324,7 +271,7 @@ function sendEmail(to, subject, html) {
 }
 
 function domainCheck(email) {
-    var whiteList = ['ouhk.edu.hk', 'test.example'];
+    var whiteList = ['ouhk.edu.hk', 'test.example', 'example.com'];
 
     var splitArray = email.split('@');
 
@@ -334,5 +281,52 @@ function domainCheck(email) {
 
     return false;
 }
+
+// var gen;
+// function run(generator) {
+//     gen = generator();
+//     gen.next();
+// }
+
+// function getProfDepartment(Uname){
+//     var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
+//     db.query(sql, Uname, function(err, rows) {
+//         if (err) {
+//             console.log(err);
+//         }else if (!rows.length){
+//             gen.next(null);
+//         }else{
+//             console.log(JSON.stringify(rows[0]));
+//             gen.next(JSON.stringify(rows[0]));
+//         }
+//     });
+// }
+
+// function getProfInfo(Email){
+//     //SQL where Email = Email
+
+//     //return Uname, Uni Full Name, Major Full Name
+// }
+
+// function getUniName(SchoolShort) {
+
+//     var sql = 'SELECT SchoolName FROM University WHERE SchoolShort = ?';
+//     db.query(sql, SchoolShort, function(err, rows) {
+//         if (err) {
+//             console.log(err);
+//         }else{
+//             console.log(rows[0].SchoolName);
+//             return rows[0].SchoolName;
+//         }
+//     });
+
+// };
+
+// function getMajorName(Mshort) {
+//     //SQL where Mshort = Mshort
+
+//     //return Major FullName
+
+// }
 
 app.listen(process.env.PORT || 8099);
