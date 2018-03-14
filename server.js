@@ -96,7 +96,7 @@ app.post('/api/register', function(req, res) {
 
                 if(type=='Professor'){
                     var major = 'PROF';
-                    input_array.push(uname,email,type,password,school,department,major);
+                    input_array.push(uname,email,type,password,school,department,major,email);
                     var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
                 }
             }finally{
@@ -214,7 +214,7 @@ app.post('/api/forget', function(req, res) {
     }
 });
 
-app.get('/api/search/prof/:email/:field', function(req,res){
+app.get('/api/search/prof/:email/', function(req,res){
     console.log(req.path);
     res.type('json');
 
@@ -222,13 +222,13 @@ app.get('/api/search/prof/:email/:field', function(req,res){
         res.status(400).end('No Professor email unspecified.');
     }
 
-    if(req.params.email && !req.params.field){
+    if(req.params.email){
         console.log(req.params.email);
-        console.log(req.params.field);
 
-        var Uname = req.params.email;
-        var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
-        db.query(sql, Uname, function(err, rows) {
+        var email = req.params.email;
+        input_array.push(email);
+        var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
+        db.query(sql, input_array, function(err, rows) {
             if (err) {
                 console.log(err);
             }else if (!rows.length){
@@ -238,10 +238,6 @@ app.get('/api/search/prof/:email/:field', function(req,res){
                 res.status(200).end(JSON.stringify(rows[0]));
             }
         });
-    }
-
-    if(req.params.email && req.params.field){
-
     }
 
         // run(function* (){
