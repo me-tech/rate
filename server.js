@@ -199,7 +199,8 @@ app.post('/api/forget', function(req, res) {
                                 res.status(500).end(errorCode(500,"Database connection error"));
                             }else{
                                 try{
-
+                                    sendEmail(email, 'Reset Password from METECH', '<p>Here is your new password : ZZZ</p>');
+                                    res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
                                 }catch(e){
                                     if(e instanceof TypeError){
                                         res.status();
@@ -207,8 +208,6 @@ app.post('/api/forget', function(req, res) {
                                 }
                             }
                         });
-
-                        res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
                     }
                 }catch(e){
                     if(e instanceof TypeError){
