@@ -154,7 +154,7 @@ app.post('/api/login', function(req, res) {
                         res.status(403).end(errorCode(403, "Wrong email or password"));
                     }else{
                         console.log(rows[0].Uname);
-                        res.status(200).end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
+                        res.status(200).end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, Department: rows[0].Department, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
                     }
                 }catch(e){
                     if(e instanceof TypeError){
