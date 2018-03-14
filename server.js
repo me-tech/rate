@@ -139,7 +139,7 @@ app.post('/api/login', function(req, res) {
         console.log(input_array);
         //input_array.push(password);
         
-        var sql = 'SELECT User.Uname, User.Email, User.Type, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
+        var sql = 'SELECT User.Uname, User.Email, User.Type, User.Department, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname, FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
         sql = mysql.format(sql, input_array);
         console.log(sql);
         db.query(sql, function(err, rows) {
