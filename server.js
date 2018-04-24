@@ -224,7 +224,7 @@ app.get('/api/search/prof/:email/', function(req,res){
 
     if(req.params.email){
         console.log(req.params.email);
-
+        var input_array = [];
         var email = req.params.email;
         input_array.push(email);
         var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
@@ -260,30 +260,27 @@ app.get('/api/courseList/:email/', function(req,res){
 
     if(req.params.email){
         console.log(req.params.email);
-
+        var input_array = [];
         var email = req.params.email;
         input_array.push(email);
-        var sql = 'SELECT * FROM User u, Class c WHERE c.Email = u.Email AND u.Email = ?';
+        var sql = 'SELECT c.ClassID, c.Email, c.Code FROM User u, Class c WHERE c.Email = u.Email AND u.Email = ?';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
                 console.log(err);
             }else if (!rows.length){
                 res.status(404).end(errorCode(404, "Prof. Not Found"));
             }else{
-                console.log(JSON.stringify(rows[0]));
-                res.status(200).end(JSON.stringify(rows[0]));
+                var objs = [];
+                for (var i = 0;i < rows.length; i++) {
+                    objs.push(rows[i]);
+                }
+                var result = {result: objs};
+
+                res.status(200).end(JSON.stringify(result));
             }
         });
     }
 
-        // run(function* (){
-        //     var result = yield getProfDepartment(unEscape(req.params.value));
-        //     yield res.send(result);
-        //     if(result == null){
-        //         res.status(404).send(errorCode(404, "Prof. Not Found"));
-        //     }
-        // });
-    
 });
 
 
