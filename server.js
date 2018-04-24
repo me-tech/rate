@@ -250,6 +250,44 @@ app.get('/api/search/prof/:email/', function(req,res){
     
 });
 
+app.get('/api/courseList/:email/', function(req,res){
+    console.log(req.path);
+    res.type('json');
+
+    if(!req.params.email){
+        res.status(400).end('No Professor email unspecified.');
+    }
+
+    if(req.params.email){
+        console.log(req.params.email);
+
+        var email = req.params.email;
+        input_array.push(email);
+        var sql = 'SELECT * FROM User u, Class c WHERE c.Email = u.Email AND u.Email = ?';
+        db.query(sql, input_array, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(404).end(errorCode(404, "Prof. Not Found"));
+            }else{
+                console.log(JSON.stringify(rows[0]));
+                res.status(200).end(JSON.stringify(rows[0]));
+            }
+        });
+    }
+
+        // run(function* (){
+        //     var result = yield getProfDepartment(unEscape(req.params.value));
+        //     yield res.send(result);
+        //     if(result == null){
+        //         res.status(404).send(errorCode(404, "Prof. Not Found"));
+        //     }
+        // });
+    
+});
+
+
+
 function unEscape(str){
     return str.replace(/\+/g," ");
 }
