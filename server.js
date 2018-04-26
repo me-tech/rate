@@ -1,5 +1,6 @@
 'use strict';
 
+var compression = require('compression');
 var express = require('express');
 var formidable = require('formidable');
 var http = require('http');
@@ -11,13 +12,14 @@ var bodyParser = require('body-parser');
 var mysql = require('mysql');
 
 var app = express();
+app.use(compression());
 app.use(bodyParser.json());
 
 var hash = require("password-hash");
 var validator = require('validator');
 
-var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-// var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+// var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
