@@ -118,6 +118,43 @@ app.post('/api/register', function(req, res) {
 
 });
 
+app.post('/api/rate', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+    var promail = req.body.promail;
+    var code = req.body.code;
+
+    var score = req.body.score;
+    var difficulty = req.body.difficulty;
+    var takeagain = req.body.takeagain;
+
+    var comment = "";
+    comment = req.body.comment;
+
+    if(!email || !promail || !code || !score || !difficulty || !takeagain){
+        res.status(400).end(errorCode(400, "Please provide all fields. Comment is optional."));
+    }else{
+
+        var input_array = [];
+        input_array.push(email,score,code,promail,difficulty,takeagain,comment);
+        var sql = "insert into Rating (Email,RateScore,Code,ProMail,Difficulty,TakeAgain,RateComment) values(?,?,?,?,?,?,?)";
+        sql = mysql.format(sql, input_array);
+
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500, "Database Error"));
+            }else{
+                res.status(200).end(errorCode(200, "Rate inserted."));
+            }
+        });
+    }
+
+});
+
 app.post('/api/login', function(req, res) {
     console.log(req.path);
     console.log(req.body);
@@ -357,6 +394,41 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
     }
 
 });
+
+app.get('/api/feedback/create/:email/:courseCode', function(req,res){
+    console.log(req.path);
+    res.type('json');
+
+    if(!req.params.email){
+        res.status(400).end('No Professor email unspecified.');
+    }else if (!req.params.courseCode){
+        res.status(400).end('No course code unspecified.');
+    }
+
+    if(req.params.email && req.params.courseCode){
+        console.log(req.path+" succeed");
+
+        var input_array = [];
+        var email = req.params.email;
+        var courseCode = req.params.courseCode;
+        input_array.push(email,courseCode);
+
+        var sql = "INSERT INTO Class c(Email,Code) VALUES(?); SELECT LAST_INSERT_ID();";
+        db.query(sql, input_array, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(500).end(errorCode(500, "DB Error"));
+            }else{
+                if(row[0].ClassID){
+                    res.status(200).end(errorCode(200, row[0].ClassID));
+                }
+            }
+        });
+    }
+
+});
+
 
 
 function unEscape(str){
