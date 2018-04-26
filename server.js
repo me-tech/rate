@@ -16,8 +16,8 @@ app.use(bodyParser.json());
 var hash = require("password-hash");
 var validator = require('validator');
 
-var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+//var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -263,7 +263,82 @@ app.get('/api/courseList/:email/', function(req,res){
         var input_array = [];
         var email = req.params.email;
         input_array.push(email);
-        var sql = 'SELECT c.ClassID, c.Email, c.Code FROM User u, Class c WHERE c.Email = u.Email AND u.Email = ?';
+        var sql = 'SELECT c.Code FROM User u, Course c WHERE c.Lecturer = u.Email AND u.Email = ?';
+        db.query(sql, input_array, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(404).end(errorCode(404, "Prof. Not Found"));
+            }else{
+                var objs = [];
+                for (var i = 0;i < rows.length; i++) {
+                    objs.push(rows[i].Code);
+                }
+                var result = {result: objs};
+
+                res.status(200).end(JSON.stringify(result));
+            }
+        });
+    }
+
+});
+
+app.get('/api/rating/:email/:courseCode', function(req,res){
+    console.log(req.path);
+    res.type('json');
+
+    if(!req.params.email){
+        res.status(400).end('No Professor email unspecified.');
+    }else if (!req.params.courseCode){
+        res.status(400).end('No course code unspecified.');
+    }
+
+    if(req.params.email && req.params.courseCode){
+        console.log(req.path+" succeed");
+
+        var input_array = [];
+        var email = req.params.email;
+        var courseCode = req.params.courseCode;
+        input_array.push(email,courseCode);
+
+        var sql = 'SELECT AVG(r.RateScore) AS RateScore, ROUND(AVG(r.Difficulty),0) AS Difficulty, AVG(DISTINCT r.TakeAgain) / COUNT(DISTINCT r.TakeAgain) AS TakeAgain FROM User u, Course c, Rating r WHERE c.Lecturer = u.Email AND r.ProMail = u.Email AND u.Email = ? AND r.Code = ? GROUP BY r.ProMail';
+        db.query(sql, input_array, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(404).end(errorCode(404, "Prof. Not Found"));
+            }else{
+                var objs = [];
+                for (var i = 0;i < rows.length; i++) {
+                    objs.push(rows[i]);
+                }
+                var result = {result: objs};
+
+                res.status(200).end(JSON.stringify(result));
+            }
+        });
+    }
+});
+
+app.get('/api/comments/:email/:courseCode', function(req,res){
+    console.log(req.path);
+    res.type('json');
+
+    if(!req.params.email){
+        res.status(400).end('No Professor email unspecified.');
+    }else if (!req.params.courseCode){
+        res.status(400).end('No course code unspecified.');
+    }
+
+    if(req.params.email && req.params.courseCode){
+        console.log(req.path+" succeed");
+
+        var input_array = [];
+        var email = req.params.email;
+        var courseCode = req.params.courseCode;
+        input_array.push(email,courseCode);
+
+        var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
                 console.log(err);
@@ -282,7 +357,6 @@ app.get('/api/courseList/:email/', function(req,res){
     }
 
 });
-
 
 
 function unEscape(str){
