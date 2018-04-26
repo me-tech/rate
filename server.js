@@ -17,7 +17,7 @@ var hash = require("password-hash");
 var validator = require('validator');
 
 var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+// var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -155,6 +155,72 @@ app.post('/api/rate', function(req, res) {
 
 });
 
+app.post('/api/create/class', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+    var code = req.body.code;
+
+    if(!email){
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
+    }else if (!code){
+        res.status(400).end(errorCode(400, 'No course code unspecified.'));
+    }
+
+    if(email && code){
+        var input_array = [];
+        input_array.push(email,code);
+
+        var sql = "insert into Class (Email,Code) values(?,?);";
+        sql = mysql.format(sql, input_array);
+
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500, "Database Error"));
+            }else{
+                var result = {classID: rows.insertId}
+                res.status(200).end(JSON.stringify({result}));
+            }
+        });
+    }
+});
+
+app.post('/api/join/class', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+    var code = req.body.code;
+
+    if(!email){
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
+    }else if (!code){
+        res.status(400).end(errorCode(400, 'No course code unspecified.'));
+    }
+
+    if(email && code){
+        var input_array = [];
+        input_array.push(email,code);
+
+        var sql = "insert into Class (Email,Code) values(?,?);";
+        sql = mysql.format(sql, input_array);
+
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500, "Database Error"));
+            }else{
+                var result = {classID: rows.insertId}
+                res.status(200).end(JSON.stringify({result}));
+            }
+        });
+    }
+});
+
 app.post('/api/login', function(req, res) {
     console.log(req.path);
     console.log(req.body);
@@ -256,7 +322,7 @@ app.get('/api/search/prof/:email/', function(req,res){
     res.type('json');
 
     if(!req.params.email){
-        res.status(400).end('No Professor email unspecified.');
+        res.status(400).end(errorCode(400, 'No Professor email unspecified.'));
     }
 
     if(req.params.email){
@@ -292,7 +358,7 @@ app.get('/api/courseList/:email/', function(req,res){
     res.type('json');
 
     if(!req.params.email){
-        res.status(400).end('No Professor email unspecified.');
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
     }
 
     if(req.params.email){
@@ -325,9 +391,9 @@ app.get('/api/rating/:email/:courseCode', function(req,res){
     res.type('json');
 
     if(!req.params.email){
-        res.status(400).end('No Professor email unspecified.');
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
     }else if (!req.params.courseCode){
-        res.status(400).end('No course code unspecified.');
+        res.status(400).end(errorCode(400,'No course code unspecified.'));
     }
 
     if(req.params.email && req.params.courseCode){
@@ -362,9 +428,9 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
     res.type('json');
 
     if(!req.params.email){
-        res.status(400).end('No Professor email unspecified.');
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
     }else if (!req.params.courseCode){
-        res.status(400).end('No course code unspecified.');
+        res.status(400).end(errorCode(400,'No course code unspecified.'));
     }
 
     if(req.params.email && req.params.courseCode){
@@ -395,25 +461,34 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
 
 });
 
-app.get('/api/feedback/create/:email/:courseCode', function(req,res){
+app.post('/api/feedback/create/:email/:classID', function(req,res){
     console.log(req.path);
     res.type('json');
 
     if(!req.params.email){
-        res.status(400).end('No Professor email unspecified.');
-    }else if (!req.params.courseCode){
-        res.status(400).end('No course code unspecified.');
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
+    }else if (!req.params.classID){
+        res.status(400).end(errorCode(400,'No course code unspecified.'));
     }
 
-    if(req.params.email && req.params.courseCode){
+    if(req.params.email && req.params.classID){
         console.log(req.path+" succeed");
 
         var input_array = [];
+        var classID = req.params.classID;
+        var week = req.params.week;
         var email = req.params.email;
-        var courseCode = req.params.courseCode;
-        input_array.push(email,courseCode);
+        var comment = req.params.comment;
 
-        var sql = "INSERT INTO Class c(Email,Code) VALUES(?); SELECT LAST_INSERT_ID();";
+        var ans1 = req.params.ans1;
+        var ans2 = req.params.ans2;
+        var ans3 = req.params.ans3;
+        var ans4 = req.params.ans4;
+        var ans5 = req.params.ans5;
+
+        input_array.push(classID,email);
+
+        var sql = "INSERT INTO Class c(ID,) VALUES(?); SELECT LAST_INSERT_ID();";
         db.query(sql, input_array, function(err, rows) {
             if (err) {
                 console.log(err);
