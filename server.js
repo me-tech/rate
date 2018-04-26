@@ -62,58 +62,67 @@ app.get('/api/browse/:key', function(req, res) {
 
 });
 
-app.post('/api/register', function(req, res) {
+app.get('/api/search/prof/:email/', function(req,res){
     console.log(req.path);
-    console.log(req.body);
     res.type('json');
 
-    var type = req.body.type;
-    console.log(type);
-    var uname = req.body.uname;
-    var email = req.body.email;
-    var school = 'OUHK';
-    var password = req.body.password;
-    var major = req.body.major;
-    var department = req.body.department;
+    if(!req.params.email){
+        res.status(400).end(errorCode(400, 'No Professor email unspecified.'));
+    }
 
-    if(!email || !password || !uname || !type){
-        res.status(400).end(JSON.stringify({error: "Please fill in all fields."}));
-    }else if(!major && !department){
-        res.status(400).end(JSON.stringify({error: "Please fill in all fields."}));
-    }else{
-        if(!validator.isEmail(email) || !domainCheck(email)){
-            res.status(400).end(JSON.stringify({error: "Please provide a proper email address."}));
-        }else if(type==='Student' ||type==='Professor'){
-            var input_array = [];
-            //password = hash.generate(password);
-            console.log('here');
-
-            try{
-                if(type=='Student'){
-                input_array.push(uname,email,type,password,school,major);
-                var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Mshort) VALUES(?, ?, ?, ?, ?, ?)';
-                }
-
-                if(type=='Professor'){
-                    var major = 'PROF';
-                    input_array.push(uname,email,type,password,school,department,major,email);
-                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
-                }
-            }finally{
-                console.log(sql);
-                sql = mysql.format(sql, input_array);
-                db.query(sql, function(err, rows) {
-                    if (err) {
-                        console.log(err);
-                        res.status(500).end(errorCode(500,"Database connection error"));
-                    }else{
-                        res.status(200).end(JSON.stringify({result: "Sucessfully registered."}))
-                    }
-                });
+    if(req.params.email){
+        console.log(req.params.email);
+        var input_array = [];
+        var email = req.params.email;
+        input_array.push(email);
+        var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
+        db.query(sql, input_array, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(404).end(errorCode(404, "Prof. Not Found"));
+            }else{
+                console.log(JSON.stringify(rows[0]));
+                res.status(200).end(JSON.stringify(rows[0]));
             }
-        }else{
-            console.log('type wrong');
-        }
+        });
+    }    
+});
+
+app.get('/api/comments/:email/:courseCode', function(req,res){
+    console.log(req.path);
+    res.type('json');
+
+    if(!req.params.email){
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
+    }else if (!req.params.courseCode){
+        res.status(400).end(errorCode(400,'No course code unspecified.'));
+    }
+
+    if(req.params.email && req.params.courseCode){
+        console.log(req.path+" succeed");
+
+        var input_array = [];
+        var email = req.params.email;
+        var courseCode = req.params.courseCode;
+        input_array.push(email,courseCode);
+
+        var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
+        db.query(sql, input_array, function(err, rows) {
+            if (err) {
+                console.log(err);
+            }else if (!rows.length){
+                res.status(404).end(errorCode(404, "Prof. Not Found"));
+            }else{
+                var objs = [];
+                for (var i = 0;i < rows.length; i++) {
+                    objs.push(rows[i]);
+                }
+                var result = {result: objs};
+
+                res.status(200).end(JSON.stringify(result));
+            }
+        });
     }
 
 });
@@ -153,204 +162,6 @@ app.post('/api/rate', function(req, res) {
         });
     }
 
-});
-
-app.post('/api/create/class', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
-    res.type('json');
-
-    var email = req.body.email;
-    var code = req.body.code;
-
-    if(!email){
-        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
-    }else if (!code){
-        res.status(400).end(errorCode(400, 'No course code unspecified.'));
-    }
-
-    if(email && code){
-        var input_array = [];
-        input_array.push(email,code);
-
-        var sql = "insert into Class (Email,Code) values(?,?);";
-        sql = mysql.format(sql, input_array);
-
-        db.query(sql, function(err, rows) {
-            if (err) {
-                console.log(err);
-                res.status(500).end(errorCode(500, "Database Error"));
-            }else{
-                var result = {classID: rows.insertId}
-                res.status(200).end(JSON.stringify({result}));
-            }
-        });
-    }
-});
-
-app.post('/api/join/class', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
-    res.type('json');
-
-    var email = req.body.email;
-    var code = req.body.code;
-
-    if(!email){
-        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
-    }else if (!code){
-        res.status(400).end(errorCode(400, 'No course code unspecified.'));
-    }
-
-    if(email && code){
-        var input_array = [];
-        input_array.push(email,code);
-
-        var sql = "insert into Class (Email,Code) values(?,?);";
-        sql = mysql.format(sql, input_array);
-
-        db.query(sql, function(err, rows) {
-            if (err) {
-                console.log(err);
-                res.status(500).end(errorCode(500, "Database Error"));
-            }else{
-                var result = {classID: rows.insertId}
-                res.status(200).end(JSON.stringify({result}));
-            }
-        });
-    }
-});
-
-app.post('/api/login', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
-    res.type('json');
-
-    var email = req.body.email;
-    var password = req.body.password;
-
-    if(!email || !password){
-        res.status(400).end(JSON.stringify({error: "email or password missing"}));
-    }else{
-        var input_array = [];
-        input_array.push(email,password);
-        console.log(input_array);
-        //input_array.push(password);
-        
-        var sql = 'SELECT User.Uname, User.Email, User.Type, User.Department, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
-        sql = mysql.format(sql, input_array);
-        console.log(sql);
-        db.query(sql, function(err, rows) {
-            if (err) {
-                console.log(err);
-                res.status(500).end(errorCode(500,"Database connection error"));
-            }else{
-            	console.log(rows[0]);
-                try{
-                    if(rows[0].Uname == null || !rows[0].Uname){
-                    	console.log('1');
-                        res.status(403).end(errorCode(403, "Wrong email or password"));
-                    }else{
-                        console.log(rows[0].Uname);
-                        res.status(200).end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, Department: rows[0].Department, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
-                    }
-                }catch(e){
-                    if(e instanceof TypeError){
-                    	console.log(e);
-                        res.status(403).end(errorCode(403, "Wrong email or password"));
-                    }
-                }
-            }
-        });
-    }
-
-});
-
-app.post('/api/forget', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
-    res.type('json');
-
-    var email = req.body.email;
-
-    if(!email){
-        res.status(400).end(errorCode(400,"Please fill in the email address field."));
-    }else{
-        var input_array = [];
-        input_array.push(email);
-        var sql = mysql.format('SELECT Uname FROM User WHERE Email = ?', input_array);
-        db.query(sql, function(err, rows) {
-            if (err) {
-                console.log(err);
-                res.status(500).end(errorCode(500,"Database connection error"));
-            }else{
-                try{
-                    if(rows[0].Uname == null || !rows[0].Uname){
-                        res.status(403).end(errorCode(403, "User does not exist."));
-                    }else{
-                        console.log(rows[0].Uname);
-                        
-                        var sql = mysql.format('UPDATE User set Password = "ZZZ" WHERE Email= ?', input_array);
-                        db.query(sql, function(err, rows) {
-                            if(err){
-                                console.log(err);
-                                res.status(500).end(errorCode(500,"Database connection error"));
-                            }else{
-                                try{
-                                    sendEmail(email, 'Reset Password from METECH', '<p>Here is your new password : ZZZ</p>');
-                                    res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
-                                }catch(e){
-                                    if(e instanceof TypeError){
-                                        res.status();
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }catch(e){
-                    if(e instanceof TypeError){
-                        res.status(403).end(errorCode(403, "User does not exist."));
-                    }
-                }
-            }
-        });
-    }
-});
-
-app.get('/api/search/prof/:email/', function(req,res){
-    console.log(req.path);
-    res.type('json');
-
-    if(!req.params.email){
-        res.status(400).end(errorCode(400, 'No Professor email unspecified.'));
-    }
-
-    if(req.params.email){
-        console.log(req.params.email);
-        var input_array = [];
-        var email = req.params.email;
-        input_array.push(email);
-        var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
-        db.query(sql, input_array, function(err, rows) {
-            if (err) {
-                console.log(err);
-            }else if (!rows.length){
-                res.status(404).end(errorCode(404, "Prof. Not Found"));
-            }else{
-                console.log(JSON.stringify(rows[0]));
-                res.status(200).end(JSON.stringify(rows[0]));
-            }
-        });
-    }
-
-        // run(function* (){
-        //     var result = yield getProfDepartment(unEscape(req.params.value));
-        //     yield res.send(result);
-        //     if(result == null){
-        //         res.status(404).send(errorCode(404, "Prof. Not Found"));
-        //     }
-        // });
-    
 });
 
 app.get('/api/courseList/:email/', function(req,res){
@@ -423,42 +234,70 @@ app.get('/api/rating/:email/:courseCode', function(req,res){
     }
 });
 
-app.get('/api/comments/:email/:courseCode', function(req,res){
+app.post('/api/create/class', function(req, res) {
     console.log(req.path);
+    console.log(req.body);
     res.type('json');
 
-    if(!req.params.email){
+    var email = req.body.email;
+    var code = req.body.code;
+
+    if(!email){
         res.status(400).end(errorCode(400,'No Professor email unspecified.'));
-    }else if (!req.params.courseCode){
-        res.status(400).end(errorCode(400,'No course code unspecified.'));
+    }else if (!code){
+        res.status(400).end(errorCode(400, 'No course code unspecified.'));
     }
 
-    if(req.params.email && req.params.courseCode){
-        console.log(req.path+" succeed");
-
+    if(email && code){
         var input_array = [];
-        var email = req.params.email;
-        var courseCode = req.params.courseCode;
-        input_array.push(email,courseCode);
+        input_array.push(email,code);
 
-        var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
-        db.query(sql, input_array, function(err, rows) {
+        var sql = "insert into Class (Email,Code) values(?,?);";
+        sql = mysql.format(sql, input_array);
+
+        db.query(sql, function(err, rows) {
             if (err) {
                 console.log(err);
-            }else if (!rows.length){
-                res.status(404).end(errorCode(404, "Prof. Not Found"));
+                res.status(500).end(errorCode(500, "Database Error"));
             }else{
-                var objs = [];
-                for (var i = 0;i < rows.length; i++) {
-                    objs.push(rows[i]);
-                }
-                var result = {result: objs};
-
-                res.status(200).end(JSON.stringify(result));
+                var result = {classID: rows.insertId}
+                res.status(200).end(JSON.stringify({result}));
             }
         });
     }
+});
 
+app.post('/api/join/class', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+    var code = req.body.code;
+
+    if(!email){
+        res.status(400).end(errorCode(400,'No Professor email unspecified.'));
+    }else if (!code){
+        res.status(400).end(errorCode(400, 'No course code unspecified.'));
+    }
+
+    if(email && code){
+        var input_array = [];
+        input_array.push(email,code);
+
+        var sql = "insert into Class (Email,Code) values(?,?);";
+        sql = mysql.format(sql, input_array);
+
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500, "Database Error"));
+            }else{
+                var result = {classID: rows.insertId}
+                res.status(200).end(JSON.stringify({result}));
+            }
+        });
+    }
 });
 
 app.post('/api/feedback/create/:email/:classID', function(req,res){
@@ -504,6 +343,157 @@ app.post('/api/feedback/create/:email/:classID', function(req,res){
 
 });
 
+app.post('/api/forget', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+
+    if(!email){
+        res.status(400).end(errorCode(400,"Please fill in the email address field."));
+    }else{
+        var input_array = [];
+        input_array.push(email);
+        var sql = mysql.format('SELECT Uname FROM User WHERE Email = ?', input_array);
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500,"Database connection error"));
+            }else{
+                try{
+                    if(rows[0].Uname == null || !rows[0].Uname){
+                        res.status(403).end(errorCode(403, "User does not exist."));
+                    }else{
+                        console.log(rows[0].Uname);
+                        
+                        var sql = mysql.format('UPDATE User set Password = "ZZZ" WHERE Email= ?', input_array);
+                        db.query(sql, function(err, rows) {
+                            if(err){
+                                console.log(err);
+                                res.status(500).end(errorCode(500,"Database connection error"));
+                            }else{
+                                try{
+                                    sendEmail(email, 'Reset Password from METECH', '<p>Here is your new password : ZZZ</p>');
+                                    res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
+                                }catch(e){
+                                    if(e instanceof TypeError){
+                                        res.status();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }catch(e){
+                    if(e instanceof TypeError){
+                        res.status(403).end(errorCode(403, "User does not exist."));
+                    }
+                }
+            }
+        });
+    }
+});
+
+app.post('/api/login', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var email = req.body.email;
+    var password = req.body.password;
+
+    if(!email || !password){
+        res.status(400).end(JSON.stringify({error: "email or password missing"}));
+    }else{
+        var input_array = [];
+        input_array.push(email,password);
+        console.log(input_array);
+        //input_array.push(password);
+        
+        var sql = 'SELECT User.Uname, User.Email, User.Type, User.Department, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
+        sql = mysql.format(sql, input_array);
+        console.log(sql);
+        db.query(sql, function(err, rows) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(errorCode(500,"Database connection error"));
+            }else{
+                console.log(rows[0]);
+                try{
+                    if(rows[0].Uname == null || !rows[0].Uname){
+                        console.log('1');
+                        res.status(403).end(errorCode(403, "Wrong email or password"));
+                    }else{
+                        console.log(rows[0].Uname);
+                        res.status(200).end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, Department: rows[0].Department, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
+                    }
+                }catch(e){
+                    if(e instanceof TypeError){
+                        console.log(e);
+                        res.status(403).end(errorCode(403, "Wrong email or password"));
+                    }
+                }
+            }
+        });
+    }
+
+});
+
+app.post('/api/register', function(req, res) {
+    console.log(req.path);
+    console.log(req.body);
+    res.type('json');
+
+    var type = req.body.type;
+    console.log(type);
+    var uname = req.body.uname;
+    var email = req.body.email;
+    var school = 'OUHK';
+    var password = req.body.password;
+    var major = req.body.major;
+    var department = req.body.department;
+
+    if(!email || !password || !uname || !type){
+        res.status(400).end(JSON.stringify({error: "Please fill in all fields."}));
+    }else if(!major && !department){
+        res.status(400).end(JSON.stringify({error: "Please fill in all fields."}));
+    }else{
+        if(!validator.isEmail(email) || !domainCheck(email)){
+            res.status(400).end(JSON.stringify({error: "Please provide a proper email address."}));
+        }else if(type==='Student' ||type==='Professor'){
+            var input_array = [];
+            //password = hash.generate(password);
+            console.log('here');
+
+            try{
+                if(type=='Student'){
+                input_array.push(uname,email,type,password,school,major);
+                var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Mshort) VALUES(?, ?, ?, ?, ?, ?)';
+                }
+
+                if(type=='Professor'){
+                    var major = 'PROF';
+                    input_array.push(uname,email,type,password,school,department,major,email);
+                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
+                }
+            }finally{
+                console.log(sql);
+                sql = mysql.format(sql, input_array);
+                db.query(sql, function(err, rows) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500).end(errorCode(500,"Database connection error"));
+                    }else{
+                        res.status(200).end(JSON.stringify({result: "Sucessfully registered."}))
+                    }
+                });
+            }
+        }else{
+            console.log('type wrong');
+        }
+    }
+
+});
 
 
 function unEscape(str){
