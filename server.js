@@ -180,7 +180,7 @@ app.get('/api/courseList/:email/', function(req,res){
         var input_array = [];
         var email = req.params.email;
         input_array.push(email);
-        var sql = 'SELECT c.Code FROM User u, Course c WHERE c.Lecturer = u.Email AND u.Email = ?';
+        var sql = 'SELECT u.Uname, c.Code FROM User u, Course c WHERE c.Lecturer = u.Email AND u.Email = ?';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
                 debug(err);
