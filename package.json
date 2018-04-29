@@ -18,7 +18,7 @@
     "url": "^0.11.0",
     "validator": "^9.4.1"
   },
-  "engine": "node >= 6.10.3",
+  "engine": "node >= 10.0.0",
   "scripts": {
     "start": "node server"
   }
