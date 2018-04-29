@@ -19,8 +19,8 @@ app.use(bodyParser.json());
 var hash = require("password-hash");
 var validator = require('validator');
 
-var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-// var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+//var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -31,13 +31,13 @@ app.get('/api/browse/:key', function(req, res) {
     if(req.params.key){
         switch(req.params.key){
             case 'course':
-                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email, GROUP_CONCAT(DISTINCT Course.Code SEPARATOR ", ") AS Codes FROM User, University, Major, Rating, Course WHERE Course.Lecturer = User.Email AND User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail'; 
+                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email, GROUP_CONCAT(DISTINCT Course.Code SEPARATOR ",") AS Codes FROM User, University, Rating, Course WHERE Course.Lecturer = User.Email AND User.SchoolShort = University.SchoolShort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail'; 
                 break;
             case 'major':
                 var sql = 'SELECT * FROM Major WHERE NOT Mshort = "PROF" ';
                 break;
             case 'prof':
-                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Major, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
+                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email FROM User, University, Rating WHERE User.SchoolShort = University.SchoolShort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail';
                 break;
             default:
                 res.status(403).end(errorCode(403, "Table forbidden."));
@@ -54,6 +54,7 @@ app.get('/api/browse/:key', function(req, res) {
         }else{
             var objs = [];
             for (var i = 0;i < rows.length; i++) {
+
                 objs.push(rows[i]);
             }
             var result = {result: objs};
@@ -477,7 +478,7 @@ app.post('/api/register', function(req, res) {
                 if(type=='Professor'){
                     var major = 'PROF';
                     input_array.push(uname,email,type,password,school,department,major,email);
-                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
+                    var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?); INSERT INTO Rating(RateScore,ProMail) VALUES(0,?)';
                 }
             }finally{
                 debug(sql);
