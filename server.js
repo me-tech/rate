@@ -1,4 +1,5 @@
 'use strict';
+var debug = require('debug')('express');
 
 var compression = require('compression');
 var express = require('express');
@@ -18,14 +19,13 @@ app.use(bodyParser.json());
 var hash = require("password-hash");
 var validator = require('validator');
 
-var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+// var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
 app.get('/api/browse/:key', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
     res.type('json');
 
     if(req.params.key){
@@ -49,7 +49,7 @@ app.get('/api/browse/:key', function(req, res) {
 
     db.query(sql, function(err, rows) {
         if (err) {
-            console.log(err);
+            debug(err);
             res.status(500).end(errorCode(500, "Database Error"));
         }else{
             var objs = [];
@@ -65,7 +65,7 @@ app.get('/api/browse/:key', function(req, res) {
 });
 
 app.get('/api/search/prof/:email/', function(req,res){
-    console.log(req.path);
+    debug(req.path);
     res.type('json');
 
     if(!req.params.email){
@@ -73,18 +73,18 @@ app.get('/api/search/prof/:email/', function(req,res){
     }
 
     if(req.params.email){
-        console.log(req.params.email);
+        debug(req.params.email);
         var input_array = [];
         var email = req.params.email;
         input_array.push(email);
         var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
             }else if (!rows.length){
                 res.status(404).end(errorCode(404, "Prof. Not Found"));
             }else{
-                console.log(JSON.stringify(rows[0]));
+                debug(JSON.stringify(rows[0]));
                 res.status(200).end(JSON.stringify(rows[0]));
             }
         });
@@ -92,7 +92,7 @@ app.get('/api/search/prof/:email/', function(req,res){
 });
 
 app.get('/api/comments/:email/:courseCode', function(req,res){
-    console.log(req.path);
+    debug(req.path);
     res.type('json');
 
     if(!req.params.email){
@@ -102,7 +102,7 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
     }
 
     if(req.params.email && req.params.courseCode){
-        console.log(req.path+" succeed");
+        debug(req.path+" succeed");
 
         var input_array = [];
         var email = req.params.email;
@@ -112,7 +112,7 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
         var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
             }else if (!rows.length){
                 res.status(404).end(errorCode(404, "Prof. Not Found"));
             }else{
@@ -130,8 +130,8 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
 });
 
 app.post('/api/rate', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     var email = req.body.email;
@@ -156,7 +156,7 @@ app.post('/api/rate', function(req, res) {
 
         db.query(sql, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
             }else{
                 res.status(200).end(errorCode(200, "Rate inserted."));
@@ -167,7 +167,7 @@ app.post('/api/rate', function(req, res) {
 });
 
 app.get('/api/courseList/:email/', function(req,res){
-    console.log(req.path);
+    debug(req.path);
     res.type('json');
 
     if(!req.params.email){
@@ -175,14 +175,14 @@ app.get('/api/courseList/:email/', function(req,res){
     }
 
     if(req.params.email){
-        console.log(req.params.email);
+        debug(req.params.email);
         var input_array = [];
         var email = req.params.email;
         input_array.push(email);
         var sql = 'SELECT c.Code FROM User u, Course c WHERE c.Lecturer = u.Email AND u.Email = ?';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
             }else if (!rows.length){
                 res.status(404).end(errorCode(404, "Prof. Not Found"));
             }else{
@@ -200,7 +200,7 @@ app.get('/api/courseList/:email/', function(req,res){
 });
 
 app.get('/api/rating/:email/:courseCode', function(req,res){
-    console.log(req.path);
+    debug(req.path);
     res.type('json');
 
     if(!req.params.email){
@@ -210,7 +210,7 @@ app.get('/api/rating/:email/:courseCode', function(req,res){
     }
 
     if(req.params.email && req.params.courseCode){
-        console.log(req.path+" succeed");
+        debug(req.path+" succeed");
 
         var input_array = [];
         var email = req.params.email;
@@ -220,7 +220,7 @@ app.get('/api/rating/:email/:courseCode', function(req,res){
         var sql = 'SELECT AVG(r.RateScore) AS RateScore, ROUND(AVG(r.Difficulty),0) AS Difficulty, AVG(DISTINCT r.TakeAgain) / COUNT(DISTINCT r.TakeAgain) AS TakeAgain FROM User u, Course c, Rating r WHERE c.Lecturer = u.Email AND r.ProMail = u.Email AND u.Email = ? AND r.Code = ? GROUP BY r.ProMail';
         db.query(sql, input_array, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
             }else if (!rows.length){
                 res.status(404).end(errorCode(404, "Prof. Not Found"));
             }else{
@@ -237,8 +237,8 @@ app.get('/api/rating/:email/:courseCode', function(req,res){
 });
 
 app.post('/api/create/class', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     var email = req.body.email;
@@ -259,7 +259,7 @@ app.post('/api/create/class', function(req, res) {
 
         db.query(sql, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
             }else{
                 var result = {classID: rows.insertId}
@@ -270,8 +270,8 @@ app.post('/api/create/class', function(req, res) {
 });
 
 app.post('/api/join/class', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     var email = req.body.email;
@@ -292,7 +292,7 @@ app.post('/api/join/class', function(req, res) {
 
         db.query(sql, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
             }else{
                 var result = {classID: rows.insertId}
@@ -303,7 +303,8 @@ app.post('/api/join/class', function(req, res) {
 });
 
 app.post('/api/feedback/create/:email/:classID', function(req,res){
-    console.log(req.path);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     if(!req.params.email){
@@ -313,7 +314,7 @@ app.post('/api/feedback/create/:email/:classID', function(req,res){
     }
 
     if(req.params.email && req.params.classID){
-        console.log(req.path+" succeed");
+        debug(req.path+" succeed");
 
         var input_array = [];
         var classID = req.params.classID;
@@ -332,7 +333,7 @@ app.post('/api/feedback/create/:email/:classID', function(req,res){
         var sql = "INSERT INTO Class c(ID,) VALUES(?); SELECT LAST_INSERT_ID();";
         db.query(sql, input_array, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
             }else if (!rows.length){
                 res.status(500).end(errorCode(500, "DB Error"));
             }else{
@@ -346,8 +347,8 @@ app.post('/api/feedback/create/:email/:classID', function(req,res){
 });
 
 app.post('/api/forget', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     var email = req.body.email;
@@ -360,19 +361,19 @@ app.post('/api/forget', function(req, res) {
         var sql = mysql.format('SELECT Uname FROM User WHERE Email = ?', input_array);
         db.query(sql, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
                 res.status(500).end(errorCode(500,"Database connection error"));
             }else{
                 try{
                     if(rows[0].Uname == null || !rows[0].Uname){
                         res.status(403).end(errorCode(403, "User does not exist."));
                     }else{
-                        console.log(rows[0].Uname);
+                        debug(rows[0].Uname);
                         
                         var sql = mysql.format('UPDATE User set Password = "ZZZ" WHERE Email= ?', input_array);
                         db.query(sql, function(err, rows) {
                             if(err){
-                                console.log(err);
+                                debug(err);
                                 res.status(500).end(errorCode(500,"Database connection error"));
                             }else{
                                 try{
@@ -397,8 +398,8 @@ app.post('/api/forget', function(req, res) {
 });
 
 app.post('/api/login', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     var email = req.body.email;
@@ -409,29 +410,29 @@ app.post('/api/login', function(req, res) {
     }else{
         var input_array = [];
         input_array.push(email,password);
-        console.log(input_array);
+        debug(input_array);
         //input_array.push(password);
         
         var sql = 'SELECT User.Uname, User.Email, User.Type, User.Department, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
         sql = mysql.format(sql, input_array);
-        console.log(sql);
+        debug(sql);
         db.query(sql, function(err, rows) {
             if (err) {
-                console.log(err);
+                debug(err);
                 res.status(500).end(errorCode(500,"Database connection error"));
             }else{
-                console.log(rows[0]);
+                debug(rows[0]);
                 try{
                     if(rows[0].Uname == null || !rows[0].Uname){
-                        console.log('1');
+                        debug('1');
                         res.status(403).end(errorCode(403, "Wrong email or password"));
                     }else{
-                        console.log(rows[0].Uname);
+                        debug(rows[0].Uname);
                         res.status(200).end(JSON.stringify({Uname: rows[0].Uname, Type: rows[0].Type, Department: rows[0].Department, SchoolName: rows[0].SchoolName, Mname: rows[0].Mname, SchoolShort: rows[0].SchoolShort, Mshort: rows[0].Mshort}));
                     }
                 }catch(e){
                     if(e instanceof TypeError){
-                        console.log(e);
+                        debug(e);
                         res.status(403).end(errorCode(403, "Wrong email or password"));
                     }
                 }
@@ -442,12 +443,12 @@ app.post('/api/login', function(req, res) {
 });
 
 app.post('/api/register', function(req, res) {
-    console.log(req.path);
-    console.log(req.body);
+    debug(req.path);
+    debug(req.body);
     res.type('json');
 
     var type = req.body.type;
-    console.log(type);
+    debug(type);
     var uname = req.body.uname;
     var email = req.body.email;
     var school = 'OUHK';
@@ -465,7 +466,7 @@ app.post('/api/register', function(req, res) {
         }else if(type==='Student' ||type==='Professor'){
             var input_array = [];
             //password = hash.generate(password);
-            console.log('here');
+            debug('here');
 
             try{
                 if(type=='Student'){
@@ -479,11 +480,11 @@ app.post('/api/register', function(req, res) {
                     var sql = 'INSERT INTO User(Uname, Email, Type, Password, SchoolShort, Department, Mshort) VALUES(?, ?, ?, ?, ?, ?, ?); INSERT INTO `Rating`(`ProMail`) VALUES(?);';
                 }
             }finally{
-                console.log(sql);
+                debug(sql);
                 sql = mysql.format(sql, input_array);
                 db.query(sql, function(err, rows) {
                     if (err) {
-                        console.log(err);
+                        debug(err);
                         res.status(500).end(errorCode(500,"Database connection error"));
                     }else{
                         res.status(200).end(JSON.stringify({result: "Sucessfully registered."}))
@@ -491,7 +492,7 @@ app.post('/api/register', function(req, res) {
                 });
             }
         }else{
-            console.log('type wrong');
+            debug('type wrong');
         }
     }
 
@@ -514,9 +515,9 @@ function sendEmail(to, subject, html) {
       html: html,
     }, function(err, info) {
       if (err) {
-        console.log('Error: ' + err);
+        debug('Error: ' + err);
       } else {
-        console.log('Success: ' + info);
+        debug('Success: ' + info);
       }
     });
 }
@@ -543,11 +544,11 @@ function domainCheck(email) {
 //     var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
 //     db.query(sql, Uname, function(err, rows) {
 //         if (err) {
-//             console.log(err);
+//             debug(err);
 //         }else if (!rows.length){
 //             gen.next(null);
 //         }else{
-//             console.log(JSON.stringify(rows[0]));
+//             debug(JSON.stringify(rows[0]));
 //             gen.next(JSON.stringify(rows[0]));
 //         }
 //     });
@@ -564,9 +565,9 @@ function domainCheck(email) {
 //     var sql = 'SELECT SchoolName FROM University WHERE SchoolShort = ?';
 //     db.query(sql, SchoolShort, function(err, rows) {
 //         if (err) {
-//             console.log(err);
+//             debug(err);
 //         }else{
-//             console.log(rows[0].SchoolName);
+//             debug(rows[0].SchoolName);
 //             return rows[0].SchoolName;
 //         }
 //     });
