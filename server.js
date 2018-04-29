@@ -20,7 +20,7 @@ var hash = require("password-hash");
 var validator = require('validator');
 
 var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+// var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -31,7 +31,7 @@ app.get('/api/browse/:key', function(req, res) {
     if(req.params.key){
         switch(req.params.key){
             case 'course':
-                var sql = 'SELECT * FROM Course';
+                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email, GROUP_CONCAT(DISTINCT Course.Code SEPARATOR ", ") AS Codes FROM User, University, Major, Rating, Course WHERE Course.Lecturer = User.Email AND User.SchoolShort = University.SchoolShort AND User.Mshort = Major.Mshort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail'; 
                 break;
             case 'major':
                 var sql = 'SELECT * FROM Major WHERE NOT Mshort = "PROF" ';
