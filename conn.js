@@ -1,11 +1,11 @@
 var mysql = require('mysql');
 
 var pool  = mysql.createPool({
-    user: process.env.DBUSER,
-    password: process.env.DBPWD,
-    host: process.env.HOST,
+    user: process.env.NEWDBUSER,
+    password: process.env.NEWDBPWD,
+    host: process.env.NEWHOST,
     port: '3306',
-    database: process.env.DB,
+    database: process.env.NEWDB,
     waitForConnections : true,
     connectionLimit : 50,
     connectTimeout  : 60 * 60 * 1000,
