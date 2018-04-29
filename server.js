@@ -189,7 +189,7 @@ app.get('/api/courseList/:email/', function(req,res){
             }else{
                 var objs = [];
                 for (var i = 0;i < rows.length; i++) {
-                    objs.push(rows[i].Code);
+                    objs.push(rows[i]);
                 }
                 var result = {result: objs};
 
