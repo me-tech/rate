@@ -19,8 +19,8 @@ app.use(bodyParser.json());
 var hash = require("password-hash");
 var validator = require('validator');
 
-//var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+var db = require('./conn.js'); var transporter = require('./sendEmail.js');
+//var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
