@@ -499,6 +499,10 @@ app.post('/api/register', function(req, res) {
 
 });
 
+app.get('/', function(req,res) {
+   res.status(200).end('Welcome to ME!TECH!'); 
+});
+
 
 function unEscape(str){
     return str.replace(/\+/g," ");
