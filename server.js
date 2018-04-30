@@ -253,7 +253,7 @@ app.post('/api/create/class', function(req, res) {
 
     if(email && code){
         var input_array = [];
-        input_array.push(email,code);
+        input_array.push(email,code.toUpperCase());
 
         var sql = "insert into Class (Email,Code) values(?,?);";
         sql = mysql.format(sql, input_array);
@@ -410,7 +410,7 @@ app.post('/api/login', function(req, res) {
         res.status(400).end(errorCode(400, "Email or password missing"));
     }else{
         var input_array = [];
-        input_array.push(email,password);
+        input_array.push(email.toLowerCase(),password);
         debug(input_array);
         //input_array.push(password);
         
