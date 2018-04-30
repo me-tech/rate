@@ -143,7 +143,7 @@ app.post('/api/rate', function(req, res) {
     var difficulty = req.body.difficulty;
     var takeagain = req.body.takeagain;
 
-    var comment = "";
+    var comment = null;
     comment = req.body.comment;
 
     if(!email || !promail || !code || !score || !difficulty || !takeagain){
@@ -407,7 +407,7 @@ app.post('/api/login', function(req, res) {
     var password = req.body.password;
 
     if(!email || !password){
-        res.status(400).end(JSON.stringify({error: "email or password missing"}));
+        res.status(400).end(errorCode(400, "Email or password missing"));
     }else{
         var input_array = [];
         input_array.push(email,password);
