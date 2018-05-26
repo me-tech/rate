@@ -48,7 +48,7 @@ app.get('/api/browse/:key', function(req, res) {
     }
 
     db.getConnection(function(err, connection) {
-        db.query(sql, function(err, rows) {
+        connection.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
@@ -61,7 +61,7 @@ app.get('/api/browse/:key', function(req, res) {
                 var result = {result: objs};
                 
                 res.status(200).end(JSON.stringify(result));
-                db.release();
+                connection.release();
             }
         });
     });
