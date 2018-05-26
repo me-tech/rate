@@ -7,19 +7,11 @@ var pool  = mysql.createPool({
     port: '3306',
     database: process.env.NEWDB,
     waitForConnections : true,
-    connectionLimit : 10,
+    connectionLimit : 9,
     connectTimeout  : 60 * 60 * 1000,
     acquireTimeout   : 60 * 60 * 1000,
     timeout         : 60 * 60 * 1000,
     multipleStatements: true,
-});
-
-pool.getConnection(function(err, connection) {
-    if(err){
-        console.log(err);
-    }else{
-        console.log("DB pool connection success");
-    }
 });
 
 pool.on('error', function(err) {
