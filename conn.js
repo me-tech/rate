@@ -7,7 +7,7 @@ var pool  = mysql.createPool({
     port: '3306',
     database: process.env.NEWDB,
     waitForConnections : true,
-    connectionLimit : 50,
+    connectionLimit : 10,
     connectTimeout  : 60 * 60 * 1000,
     acquireTimeout   : 60 * 60 * 1000,
     timeout         : 60 * 60 * 1000,
