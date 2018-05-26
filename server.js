@@ -48,22 +48,26 @@ app.get('/api/browse/:key', function(req, res) {
     }
 
     pool.getConnection(function(err, connection) {
-        connection.query(sql, function(err, rows) {
-            connection.release();
-            if (err) {
-                debug(err);
-                res.status(500).end(errorCode(500, "Database Error"));
-            }else{
-                var objs = [];
-                for (var i = 0;i < rows.length; i++) {
+        if(err){  
+            callback(err,null,null);  
+        }else{
+            connection.query(sql, function(err, rows) {
+                connection.release();
+                if (err) {
+                    debug(err);
+                    res.status(500).end(errorCode(500, "Database Error"));
+                }else{
+                    var objs = [];
+                    for (var i = 0;i < rows.length; i++) {
 
-                    objs.push(rows[i]);
+                        objs.push(rows[i]);
+                    }
+                    var result = {result: objs};
+                    
+                    res.status(200).end(JSON.stringify(result));
                 }
-                var result = {result: objs};
-                
-                res.status(200).end(JSON.stringify(result));
-            }
-        });
+            });
+        }
     });
 
 });
