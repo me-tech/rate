@@ -19,8 +19,8 @@ app.use(bodyParser.json());
 var hash = require("password-hash");
 var validator = require('validator');
 
-var db = require('./conn.js'); var transporter = require('./sendEmail.js');
-// var db = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+var pool = require('./conn.js'); var transporter = require('./sendEmail.js');
+// var pool = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
@@ -47,7 +47,7 @@ app.get('/api/browse/:key', function(req, res) {
         res.status(400).end(errorCode(400, "Table not specified."));
     }
 
-    db.getConnection(function(err, connection) {
+    pool.getConnection(function(err, connection) {
         connection.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
@@ -82,7 +82,7 @@ app.get('/api/search/prof/:email/', function(req,res){
         var email = req.params.email;
         input_array.push(email);
         var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
-        db.query(sql, input_array, function(err, rows) {
+        pool.query(sql, input_array, function(err, rows) {
             if (err) {
                 debug(err);
             }else if (!rows.length){
@@ -115,7 +115,7 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
         input_array.push(email,courseCode);
 
         var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
-        db.query(sql, input_array, function(err, rows) {
+        pool.query(sql, input_array, function(err, rows) {
             if (err) {
                 debug(err);
             }else if (!rows.length){
@@ -159,7 +159,7 @@ app.post('/api/rate', function(req, res) {
         var sql = "insert into Rating (Email,RateScore,Code,ProMail,Difficulty,TakeAgain,RateComment) values(?,?,?,?,?,?,?)";
         sql = mysql.format(sql, input_array);
 
-        db.query(sql, function(err, rows) {
+        pool.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
@@ -185,7 +185,7 @@ app.get('/api/courseList/:email/', function(req,res){
         var email = req.params.email;
         input_array.push(email);
         var sql = 'SELECT u.Uname, c.Code FROM User u, Course c WHERE c.Lecturer = u.Email AND u.Email = ?';
-        db.query(sql, input_array, function(err, rows) {
+        pool.query(sql, input_array, function(err, rows) {
             if (err) {
                 debug(err);
             }else if (!rows.length){
@@ -223,7 +223,7 @@ app.get('/api/rating/:email/:courseCode', function(req,res){
         input_array.push(email,courseCode);
 
         var sql = 'SELECT AVG(r.RateScore) AS RateScore, ROUND(AVG(r.Difficulty),0) AS Difficulty, AVG(DISTINCT r.TakeAgain) / COUNT(DISTINCT r.TakeAgain) AS TakeAgain FROM User u, Course c, Rating r WHERE c.Lecturer = u.Email AND r.ProMail = u.Email AND u.Email = ? AND r.Code = ? GROUP BY r.ProMail';
-        db.query(sql, input_array, function(err, rows) {
+        pool.query(sql, input_array, function(err, rows) {
             if (err) {
                 debug(err);
             }else if (!rows.length){
@@ -262,7 +262,7 @@ app.post('/api/create/class', function(req, res) {
         var sql = "insert into Class (Email,Code) values(?,?);";
         sql = mysql.format(sql, input_array);
 
-        db.query(sql, function(err, rows) {
+        pool.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
@@ -295,7 +295,7 @@ app.post('/api/join/class', function(req, res) {
         var sql = "insert into Class (Email,Code) values(?,?);";
         sql = mysql.format(sql, input_array);
 
-        db.query(sql, function(err, rows) {
+        pool.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
@@ -336,7 +336,7 @@ app.post('/api/feedback/create/:email/:classID', function(req,res){
         input_array.push(classID,email);
 
         var sql = "INSERT INTO Class c(ID,) VALUES(?); SELECT LAST_INSERT_ID();";
-        db.query(sql, input_array, function(err, rows) {
+        pool.query(sql, input_array, function(err, rows) {
             if (err) {
                 debug(err);
             }else if (!rows.length){
@@ -364,7 +364,7 @@ app.post('/api/forget', function(req, res) {
         var input_array = [];
         input_array.push(email);
         var sql = mysql.format('SELECT Uname FROM User WHERE Email = ?', input_array);
-        db.query(sql, function(err, rows) {
+        pool.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500,"Database connection error"));
@@ -376,7 +376,7 @@ app.post('/api/forget', function(req, res) {
                         debug(rows[0].Uname);
                         
                         var sql = mysql.format('UPDATE User set Password = "ZZZ" WHERE Email= ?', input_array);
-                        db.query(sql, function(err, rows) {
+                        pool.query(sql, function(err, rows) {
                             if(err){
                                 debug(err);
                                 res.status(500).end(errorCode(500,"Database connection error"));
@@ -421,7 +421,7 @@ app.post('/api/login', function(req, res) {
         var sql = 'SELECT User.Uname, User.Email, User.Type, User.Department, User.SchoolShort, User.Mshort, University.SchoolName, Major.Mname FROM User INNER JOIN University USING (SchoolShort) INNER JOIN Major USING (Mshort) WHERE User.Email = ? AND User.Password = ?';        
         sql = mysql.format(sql, input_array);
         debug(sql);
-        db.query(sql, function(err, rows) {
+        pool.query(sql, function(err, rows) {
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500,"Database connection error"));
@@ -487,7 +487,7 @@ app.post('/api/register', function(req, res) {
             }finally{
                 debug(sql);
                 sql = mysql.format(sql, input_array);
-                db.query(sql, function(err, rows) {
+                pool.query(sql, function(err, rows) {
                     if (err) {
                         debug(err);
                         res.status(500).end(errorCode(500,"Database connection error"));
@@ -551,7 +551,7 @@ function domainCheck(email) {
 
 // function getProfDepartment(Uname){
 //     var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Mshort`,`Department` FROM User u, Course c WHERE u.Uname =c.Lecturer AND u.Uname = ?';
-//     db.query(sql, Uname, function(err, rows) {
+//     pool.query(sql, Uname, function(err, rows) {
 //         if (err) {
 //             debug(err);
 //         }else if (!rows.length){
@@ -572,7 +572,7 @@ function domainCheck(email) {
 // function getUniName(SchoolShort) {
 
 //     var sql = 'SELECT SchoolName FROM University WHERE SchoolShort = ?';
-//     db.query(sql, SchoolShort, function(err, rows) {
+//     pool.query(sql, SchoolShort, function(err, rows) {
 //         if (err) {
 //             debug(err);
 //         }else{
