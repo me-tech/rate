@@ -49,6 +49,7 @@ app.get('/api/browse/:key', function(req, res) {
 
     pool.getConnection(function(err, connection) {
         connection.query(sql, function(err, rows) {
+            connection.release();
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
@@ -61,7 +62,6 @@ app.get('/api/browse/:key', function(req, res) {
                 var result = {result: objs};
                 
                 res.status(200).end(JSON.stringify(result));
-                connection.release();
             }
         });
     });
@@ -82,16 +82,19 @@ app.get('/api/search/prof/:email/', function(req,res){
         var email = req.params.email;
         input_array.push(email);
         var sql = 'SELECT u.Uname, `Type`,`SchoolShort`,`Department`, AVG(Rating.RateScore) AS RateScore FROM User u, Course c, Rating r WHERE u.Uname =c.Lecturer AND r.ProMail = u.Email AND u.Email = ?';
-        pool.query(sql, input_array, function(err, rows) {
-            if (err) {
-                debug(err);
-            }else if (!rows.length){
-                res.status(404).end(errorCode(404, "Prof. Not Found"));
-            }else{
-                debug(JSON.stringify(rows[0]));
-                res.status(200).end(JSON.stringify(rows[0]));
-            }
+        pool.getConnection(function(err, connection) {
+            connection.query(sql, input_array, function(err, rows) {
+                connection.release();
+                if (err) {
+                    debug(err);
+                }else if (!rows.length){
+                    res.status(404).end(errorCode(404, "Prof. Not Found"));
+                }else{
+                    debug(JSON.stringify(rows[0]));
+                    res.status(200).end(JSON.stringify(rows[0]));
+                }
 
+            });
         });
     }    
 });
@@ -115,20 +118,23 @@ app.get('/api/comments/:email/:courseCode', function(req,res){
         input_array.push(email,courseCode);
 
         var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
-        pool.query(sql, input_array, function(err, rows) {
-            if (err) {
-                debug(err);
-            }else if (!rows.length){
-                res.status(404).end(errorCode(404, "Prof. Not Found"));
-            }else{
-                var objs = [];
-                for (var i = 0;i < rows.length; i++) {
-                    objs.push(rows[i]);
-                }
-                var result = {result: objs};
+        pool.getConnection(function(err, connection) {
+            connection.query(sql, input_array, function(err, rows) {
+                connection.release();
+                if (err) {
+                    debug(err);
+                }else if (!rows.length){
+                    res.status(404).end(errorCode(404, "Prof. Not Found"));
+                }else{
+                    var objs = [];
+                    for (var i = 0;i < rows.length; i++) {
+                        objs.push(rows[i]);
+                    }
+                    var result = {result: objs};
 
-                res.status(200).end(JSON.stringify(result));
-            }
+                    res.status(200).end(JSON.stringify(result));
+                }
+            });
         });
     }
 
@@ -159,13 +165,16 @@ app.post('/api/rate', function(req, res) {
         var sql = "insert into Rating (Email,RateScore,Code,ProMail,Difficulty,TakeAgain,RateComment) values(?,?,?,?,?,?,?)";
         sql = mysql.format(sql, input_array);
 
-        pool.query(sql, function(err, rows) {
-            if (err) {
-                debug(err);
-                res.status(500).end(errorCode(500, "Database Error"));
-            }else{
-                res.status(200).end(errorCode(200, "Rate inserted."));
-            }
+        pool.getConnection(function(err, connection) {
+            connection.query(sql, function(err, rows) {
+                connection.release();
+                if (err) {
+                    debug(err);
+                    res.status(500).end(errorCode(500, "Database Error"));
+                }else{
+                    res.status(200).end(errorCode(200, "Rate inserted."));
+                }
+            });
         });
     }
 
