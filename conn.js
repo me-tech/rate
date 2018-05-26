@@ -8,9 +8,7 @@ var pool  = mysql.createPool({
     database: process.env.NEWDB,
     waitForConnections : true,
     connectionLimit : 10,
-    connectTimeout  : 60 * 60 * 1000,
-    acquireTimeout   : 60 * 60 * 1000,
-    timeout         : 60 * 60 * 1000,
+    acquireTimeout   : 1000000,
     multipleStatements: true,
 });
 
