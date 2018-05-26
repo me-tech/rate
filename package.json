@@ -21,6 +21,6 @@
   "engine": "node >= 10.0.0",
   "scripts": {
     "preinstall": "npm install pm2 -g",
-    "start": "pm2-runtime server.js -i 0 --max-memory-restart 500M"
+    "start": "pm2-runtime server.js -i 0 --max-memory-restart 450M"
   }
 }
