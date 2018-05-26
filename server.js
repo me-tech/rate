@@ -47,9 +47,9 @@ app.get('/api/browse/:key', function(req, res) {
         res.status(400).end(errorCode(400, "Table not specified."));
     }
 
-    pool.getConnection(function(err, connection) {
-        connection.query(sql, function(err, rows) {
-            connection.destroy();
+    //pool.getConnection(function(err, connection) {
+        pool.query(sql, function(err, rows) {
+            pool.destroy();
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
@@ -64,7 +64,7 @@ app.get('/api/browse/:key', function(req, res) {
                 res.status(200).end(JSON.stringify(result));
             }
         });
-    });
+    //});
 
 });
 
