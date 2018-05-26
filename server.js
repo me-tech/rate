@@ -49,7 +49,7 @@ app.get('/api/browse/:key', function(req, res) {
 
     pool.getConnection(function(err, connection) {
         connection.query(sql, function(err, rows) {
-            connection.release();
+            connection.destroy();
             if (err) {
                 debug(err);
                 res.status(500).end(errorCode(500, "Database Error"));
