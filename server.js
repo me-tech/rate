@@ -60,6 +60,7 @@ app.get('/api/browse/:key', function(req, res) {
             var result = {result: objs};
             
             res.status(200).end(JSON.stringify(result));
+            db.release();
         }
     });
 
@@ -88,6 +89,7 @@ app.get('/api/search/prof/:email/', function(req,res){
                 debug(JSON.stringify(rows[0]));
                 res.status(200).end(JSON.stringify(rows[0]));
             }
+            
         });
     }    
 });
