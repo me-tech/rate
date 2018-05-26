@@ -31,7 +31,7 @@ app.get('/api/browse/:key', function(req, res) {
     if(req.params.key){
         switch(req.params.key){
             case 'course':
-                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email, GROUP_CONCAT(DISTINCT Course.Code SEPARATOR ",") AS Codes FROM User, University, Rating, Course WHERE Course.Lecturer = User.Email AND User.SchoolShort = University.SchoolShort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail'; 
+                var sql = 'SELECT User.Uname AS Professor, User.Type, User.SchoolShort, User.Department, University.SchoolName, AVG(Rating.RateScore) AS RateScore, User.Email, GROUP_CONCAT(DISTINCT Course.Code SEPARATOR ",") AS Codes FROM User, University, Rating, Course WHERE Course.Lecturer = User.Email AND User.SchoolShort = University.SchoolShort AND User.Type = "Professor" AND Rating.ProMail = User.Email GROUP BY Rating.ProMail ORDER BY RateScore DESC '; 
                 break;
             case 'major':
                 var sql = 'SELECT * FROM Major WHERE NOT Mshort = "PROF" ';
