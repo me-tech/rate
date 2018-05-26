@@ -20,7 +20,7 @@ var hash = require("password-hash");
 var validator = require('validator');
 
 var pool = require('./conn.js'); var transporter = require('./sendEmail.js');
-// var pool = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
+//var pool = require('./connLocal.js'); var transporter = require('./sendEmailLocal.js');
 
 app.use(fileUpload());
 
