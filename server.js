@@ -6,6 +6,7 @@ var express = require('express');
 var formidable = require('formidable');
 var http = require('http');
 var url = require('url');
+var util = require('util');
 var assert = require('assert');
 var fileUpload = require('express-fileupload');
 var bodyParser = require('body-parser');
