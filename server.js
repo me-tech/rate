@@ -50,6 +50,7 @@ app.get('/api/browse/:key', function(req, res) {
     }
 
     pool.query(sql, function(err, rows) {
+        pool.destory();
         if (err) {
             debug(err);
             res.status(500).end(errorCode(500, "Database Error"));
