@@ -64,8 +64,8 @@ app.get('/api/browse/:key', function(req, res) {
                 
                 res.status(200).end(JSON.stringify(result));
             }
-            connection.release();
-            if(error) throw error;
+            connection.destroy();
+            if(err) throw err;
         });
     });
 
