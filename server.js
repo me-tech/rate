@@ -395,7 +395,7 @@ app.post('/api/forget', function(req, res) {
                                 res.status(500).end(errorCode(500,"Database connection error"));
                             }else{
                                 try{
-                                    sendEmail(email, 'Reset Password from METECH', '<p>Here is your new password : ZZZ</p>');
+                                    sendEmail(email, 'Reset Password from ME!TECH', '<p>Here is your new password : ZZZ</p>');
                                     res.status(200).end(JSON.stringify({message:"We have sent an email to your email address."}));
                                 }catch(e){
                                     if(e instanceof TypeError){
@@ -484,8 +484,6 @@ app.post('/api/register', function(req, res) {
         }else if(type==='Student' ||type==='Professor'){
             var input_array = [];
             //password = hash.generate(password);
-            debug('here');
-
             try{
                 if(type=='Student'){
                 input_array.push(uname,email,type,password,school,major);
@@ -500,24 +498,28 @@ app.post('/api/register', function(req, res) {
             }finally{
                 debug(sql);
                 sql = mysql.format(sql, input_array);
-                pool.query(sql, function(err, rows) {
-                    if (err) {
-                        debug(err);
-                        res.status(500).end(errorCode(500,"Database connection error"));
-                    }else{
-                        res.status(200).end(JSON.stringify({result: "Sucessfully registered."}))
-                    }
-                });
+                pool.getConnection(function(err, connection) {
+	                connection.query(sql, function(err, rows) {
+	                    connection.release();
+	                    if (err) {
+	                        debug(err);
+	                        res.status(500).end(errorCode(500,"Database connection error"));
+	                    }else{
+	                        res.status(200).end(JSON.stringify({result: "Sucessfully registered."}))
+	                    	sendEmail(email, util.format('Registration successfully on Rate Professor', '<p>You have successfully created an %s account on Rate Professor powered by ME!TECH. </p>', type));
+	                    }
+	                });
+	            });
             }
-        }else{
-            debug('type wrong');
         }
     }
 
 });
 
 app.get('/', function(req,res) {
-   res.status(200).end('Welcome to ME!TECH!'); 
+   var testing = 'uu';
+   var message = util.format('%s hi', testing); 
+   res.status(200).end('Welcome to ME!TECH!'+message);
 });
 
 
