@@ -528,7 +528,7 @@ app.get('/', function(req,res) {
 });
 
 app.get('/policy', function(req,res) {
-   res.redirect('/public/policy.html');
+   res.redirect('/policy.html');
 });
 
 
