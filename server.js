@@ -16,6 +16,7 @@ var mysql = require('mysql');
 var app = express();
 app.use(compression());
 app.use(bodyParser.json());
+app.use(express.static('public'));
 
 var hash = require("password-hash");
 var validator = require('validator');
@@ -107,42 +108,45 @@ app.get('/api/search/prof/:email/', function(req,res){
 app.get('/api/comments/:email/:courseCode', function(req,res){
     debug(req.path);
     res.type('json');
-
     if(!req.params.email){
         res.status(400).end(errorCode(400,'No Professor email unspecified.'));
     }else if (!req.params.courseCode){
         res.status(400).end(errorCode(400,'No course code unspecified.'));
     }
-
     if(req.params.email && req.params.courseCode){
-        debug(req.path+" succeed");
-
+        debug(req.path + " succeed");
         var input_array = [];
         var email = req.params.email;
         var courseCode = req.params.courseCode;
         input_array.push(email,courseCode);
-
-        var sql = 'SELECT DISTINCT(u.Uname), r.RateComment AS RateComment FROM Rating r INNER JOIN User u ON r.Email = u.Email INNER JOIN Course c ON r.ProMail = c.Lecturer INNER JOIN Course ON c.Code = r.Code WHERE r.Promail = ? AND r.Code = ? ';
+        var sql = 	`SELECT DISTINCT(u.Uname), r.RateComment AS RateComment 
+        			FROM Rating r INNER JOIN User u ON r.Email = u.Email 
+        			INNER JOIN Course c ON r.ProMail = c.Lecturer 
+        			INNER JOIN Course ON c.Code = r.Code 
+        			WHERE r.Promail = ? AND r.Code = ? `;
         pool.getConnection(function(err, connection) {
-            connection.query(sql, input_array, function(err, rows) {
-                connection.release();
-                if (err) {
-                    debug(err);
-                }else if (!rows.length){
-                    res.status(404).end(errorCode(404, "Prof. Not Found"));
-                }else{
-                    var objs = [];
-                    for (var i = 0;i < rows.length; i++) {
-                        objs.push(rows[i]);
-                    }
-                    var result = {result: objs};
-
-                    res.status(200).end(JSON.stringify(result));
-                }
-            });
+        	if(err){  
+            	callback(err,null,null);  
+        	}else{
+	            connection.query(sql, input_array, function(err, rows) {
+	                connection.release();
+	                if (err) {
+	                    debug(err);
+	                    res.status(500).end(errorCode(500, "Database Error"));
+	                }else if (!rows.length){
+	                    res.status(404).end(errorCode(404, "Prof. Not Found"));
+	                }else{
+	                    var objs = [];
+	                    for (var i = 0;i < rows.length; i++) {
+	                        objs.push(rows[i]);
+	                    }
+	                    var result = {result: objs};
+	                    res.status(200).end(JSON.stringify(result));
+	                }
+	            });
+        	}
         });
     }
-
 });
 
 app.post('/api/rate', function(req, res) {
@@ -521,6 +525,10 @@ app.get('/', function(req,res) {
    var testing = 'uu';
    var message = util.format('%s hi', testing); 
    res.status(200).end('Welcome to ME!TECH!'+message);
+});
+
+app.get('/policy', function(req,res) {
+   res.redirect('/public/policy.html');
 });
 
 
